@@ -1,0 +1,132 @@
+/* Global Page Style */
+
+body{
+font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+background:#0f172a;
+color:white;
+margin:0;
+padding:0;
+}
+
+/* Dashboard Title */
+
+.title{
+text-align:center;
+padding:25px;
+background:#020617;
+color:#38bdf8;
+letter-spacing:2px;
+font-size:30px;
+border-bottom:2px solid #1e293b;
+}
+
+/* Grid Layout */
+
+.container{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(350px,1fr));
+gap:20px;
+padding:25px;
+}
+
+/* Card Styling */
+
+.card{
+background:#1e293b;
+padding:20px;
+border-radius:10px;
+box-shadow:0 0 15px rgba(0,0,0,0.6);
+transition:0.3s;
+}
+
+.card:hover{
+transform:translateY(-5px);
+box-shadow:0 0 20px rgba(56,189,248,0.4);
+}
+
+/* Card Titles */
+
+.card h2{
+color:#38bdf8;
+margin-bottom:10px;
+}
+
+/* Input Fields */
+
+textarea,input{
+width:100%;
+padding:10px;
+margin-top:10px;
+margin-bottom:10px;
+border-radius:6px;
+border:none;
+background:#020617;
+color:white;
+font-size:14px;
+}
+
+/* Buttons */
+
+button{
+background:#38bdf8;
+color:white;
+border:none;
+padding:10px 20px;
+border-radius:6px;
+cursor:pointer;
+font-weight:bold;
+transition:0.3s;
+}
+
+button:hover{
+background:#0ea5e9;
+box-shadow:0 0 10px #38bdf8;
+}
+
+/* Result Output */
+
+pre{
+background:#020617;
+padding:12px;
+border-radius:6px;
+overflow:auto;
+font-size:13px;
+}
+
+/* Threat Level Display */
+
+#threatLevel{
+font-size:32px;
+text-align:center;
+font-weight:bold;
+color:#facc15;
+}
+
+/* Statistics */
+
+p{
+font-size:15px;
+margin:5px 0;
+}
+
+/* Charts */
+
+canvas{
+background:#020617;
+border-radius:8px;
+padding:10px;
+}
+
+/* Responsive Adjustments */
+
+@media(max-width:768px){
+
+.container{
+grid-template-columns:1fr;
+}
+
+.title{
+font-size:22px;
+}
+
+}

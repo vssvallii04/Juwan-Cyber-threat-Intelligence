@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="UTF-8">
+<title>JUWAN Cyber Threat Intelligence Dashboard</title>
+
+<link rel="stylesheet" href="style.css">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+</head>
+
+<body>
+
+<h1 class="title">🛡 JUWAN CYBER THREAT INTELLIGENCE DASHBOARD</h1>
+
+<div class="container">
+
+<!-- System Threat Level -->
+<div class="card">
+<h2>System Threat Level</h2>
+<h3 id="threatLevel">LOW</h3>
+</div>
+
+<!-- Live Statistics -->
+<div class="card">
+<h2>Live Statistics</h2>
+<p>Total Scans: <span id="totalScans">0</span></p>
+<p>Phishing Detected: <span id="phishingCount">0</span></p>
+<p>Legitimate Emails: <span id="legitimateCount">0</span></p>
+</div>
+
+<!-- Threat Distribution Chart -->
+<div class="card">
+<h2>Threat Distribution</h2>
+<canvas id="pieChart"></canvas>
+</div>
+
+<!-- Email Phishing Detection -->
+<div class="card">
+<h2>Email Phishing Check</h2>
+
+<textarea id="emailText" placeholder="Paste email content..."></textarea>
+
+<button onclick="checkEmail()">Analyze Email</button>
+
+<pre id="emailResult"></pre>
+</div>
+
+<!-- URL Phishing Detection -->
+<div class="card">
+<h2>URL Phishing Check</h2>
+
+<input id="urlText" placeholder="Paste URL here"/>
+
+<button onclick="checkURL()">Analyze URL</button>
+
+<pre id="urlResult"></pre>
+</div>
+
+<!-- Chat Scam Detection -->
+<div class="card">
+<h2>Chat Scam Detection</h2>
+
+<textarea id="chatText" placeholder="Paste chat message..."></textarea>
+
+<button onclick="checkChat()">Analyze Chat</button>
+
+<pre id="chatResult"></pre>
+</div>
+
+<!-- Ensemble Decision -->
+<div class="card">
+<h2>Ensemble Threat Decision</h2>
+
+<button onclick="checkEnsemble()">Run Final Decision</button>
+
+<pre id="ensembleResult"></pre>
+</div>
+
+<!-- Threat Dashboard -->
+<div class="card">
+<h2>Threat Dashboard</h2>
+
+<canvas id="threatChart"></canvas>
+
+</div>
+
+</div>
+
+<script src="app.js"></script>
+
+</body>
+
+</html>

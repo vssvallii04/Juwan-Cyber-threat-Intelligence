@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+scikit-learn
+pandas
+numpy
+nltk
+spacy
+gensim
+tensorflow
+python-multipart
