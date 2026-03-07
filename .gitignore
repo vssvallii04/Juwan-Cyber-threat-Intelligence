@@ -45,9 +45,13 @@ venv.bak/
 *.sqlite3
 forensics_logs.db
 
-# Models and data
-models/
+# Allow model files but ignore training data and unnecessary files
+models/__pycache__/
+models/*.pyc
 data/
+!models/*.pkl
+!models/__init__.py
+!models/*_model.py
 !data/sample_emails.csv
 
 # Logs
