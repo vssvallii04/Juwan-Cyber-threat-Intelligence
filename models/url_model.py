@@ -3,9 +3,9 @@ from features.feature_extractor import extract_url_features
 WEIGHTS = {
     "url_length": 0.08,
     "num_dots": 0.08,
-    "has_ip": 0.12,
-    "has_https": 0.12,  # HTTPS reduces risk
-    "suspicious_words": 0.60  # Keywords are strongest indicator (increased weight)
+    "has_ip": 0.18,      # Increased: raw IP is a very strong phishing signal
+    "has_https": 0.12,   # No-HTTPS penalty
+    "suspicious_words": 0.54
 }
 
 def predict_url_phishing(url: str):
@@ -37,6 +37,7 @@ def predict_url_phishing(url: str):
     
     # Extract domain part for pattern analysis
     domain_part = url.split("//")[-1].split("/")[0].split("?")[0].lower()
+    full_url_lower = url.lower()   # Also check full URL (path + params)
     
     # Count suspicious keywords in domain (strong indicator)
     domain_suspicious_count = sum(1 for word in suspicious_word_list if word in domain_part)
@@ -44,9 +45,12 @@ def predict_url_phishing(url: str):
     # Check for risky patterns (multiple keywords = higher risk)
     has_risky_pattern = domain_suspicious_count >= 2
     
-    # Check for brand impersonation (very high risk)
+    # Check for brand impersonation in the FULL URL (domain + path)
     brands = ["paypal", "amazon", "apple", "google", "microsoft", "facebook"]
-    has_brand_impersonation = any(brand in domain_part for brand in brands)
+    has_brand_impersonation = (
+        any(brand in domain_part for brand in brands) or
+        (any(brand in full_url_lower for brand in brands) and bool(features.get("has_ip", False)))
+    )
     
     # Check for urgency indicators
     urgency_words = ["urgent", "alert", "action", "required", "immediate", "now"]

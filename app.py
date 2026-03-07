@@ -199,32 +199,92 @@ def analyze_chat(req: ChatRequest):
     try:
         # Input validation
         text = validate_chat_input(req.text)
-        
+
         logger.info(f"Chat analysis started - {len(text)} characters")
-        
+
         text_lower = text.lower()
-        scam_words = ["otp", "verify", "urgent", "password", "bank"]
-        
-        # Count matching words
-        matched_words = [word for word in scam_words if word in text_lower]
-        score = len(matched_words)
-        
-        prediction = "scam" if score >= 2 else "normal"
-        confidence = min(1.0, score / len(scam_words))
-        
+
+        # Weighted keyword dictionary — higher weight = stronger scam signal
+        SCAM_KEYWORDS = {
+            # High-severity (0.35) — almost always scam-specific
+            "otp": 0.35,
+            "send money": 0.35,
+            "wire transfer": 0.35,
+            "western union": 0.35,
+            "bitcoin": 0.35,
+            "crypto": 0.30,
+            "seed phrase": 0.40,
+            "private key": 0.40,
+            "inheritance": 0.35,
+            "nigerian prince": 0.50,
+            "lottery winner": 0.40,
+            "unclaimed funds": 0.40,
+            "gift card": 0.30,
+            "prize": 0.25,
+            "winner": 0.25,
+            # Medium-severity (0.20–0.25)
+            "password": 0.25,
+            "pin": 0.25,
+            "cvv": 0.30,
+            "bank account": 0.30,
+            "credit card": 0.30,
+            "debit card": 0.30,
+            "verify": 0.20,
+            "verification": 0.20,
+            "confirm": 0.15,
+            "urgent": 0.20,
+            "immediately": 0.15,
+            "suspended": 0.20,
+            "blocked": 0.20,
+            "compromised": 0.25,
+            "click here": 0.20,
+            "click the link": 0.25,
+            "limited offer": 0.20,
+            "act now": 0.20,
+            "free": 0.10,
+            "100% free": 0.25,
+            # Lower-severity (0.10–0.15) — boost when combined
+            "bank": 0.15,
+            "account": 0.10,
+            "transfer": 0.15,
+            "payment": 0.10,
+            "refund": 0.15,
+            "loan": 0.10,
+            "kyc": 0.25,
+            "aadhar": 0.20,
+            "ssn": 0.30,
+            "social security": 0.30,
+        }
+
+        matched = {}
+        weighted_score = 0.0
+        for keyword, weight in SCAM_KEYWORDS.items():
+            if keyword in text_lower:
+                matched[keyword] = round(weight, 2)
+                weighted_score += weight
+
+        confidence = round(min(weighted_score, 1.0), 4)
+
+        # Scam if weighted score >= 0.25 (single strong word is enough)
+        prediction = "scam" if confidence >= 0.25 else "normal"
+
         response = {
             "status": "success",
             "artifact_id": str(uuid.uuid4()),
             "module": "chat",
             "prediction": prediction,
             "confidence": confidence,
-            "indicators": matched_words,
-            "score": score,
+            "indicators": list(matched.keys()),
+            "indicator_weights": matched,
+            "score": round(weighted_score, 4),
             "timestamp": None
         }
-        
-        logger.info(f"Chat analysis completed - Prediction: {prediction}, Confidence: {confidence}, Indicators: {matched_words}")
-        
+
+        logger.info(
+            f"Chat analysis completed - Prediction: {prediction}, "
+            f"Confidence: {confidence}, Indicators: {list(matched.keys())}"
+        )
+
         return response
     
     except ValidationError as ve:
