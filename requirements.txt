@@ -7,4 +7,5 @@ nltk
 spacy
 gensim
 tensorflow
-python-multipartpython-dotenv
+python-multipart
+python-dotenv

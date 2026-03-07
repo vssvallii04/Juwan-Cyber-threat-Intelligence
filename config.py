@@ -3,10 +3,13 @@ Configuration management for Cyber Threat Intelligence API
 """
 import os
 from typing import Literal
-from dotenv import load_dotenv
 
-# Load environment variables from .env file
-load_dotenv()
+# Try to load .env file if it exists
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    print("Warning: python-dotenv not installed. Using system environment variables only.")
 
 class Settings:
     # Environment
