@@ -16,12 +16,5 @@
   ],
   "env": {
     "ENVIRONMENT": "production"
-  },
-  "functions": {
-    "api/index.py": {
-      "runtime": "python3.11",
-      "maxDuration": 30,
-      "memory": 1024
-    }
   }
 }
