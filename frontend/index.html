@@ -1,96 +1,226 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-<meta charset="UTF-8">
-<title>JUWAN Cyber Threat Intelligence Dashboard</title>
-
-<link rel="stylesheet" href="style.css">
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juwan Cyber Threat Intelligence - Advanced Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-
 <body>
+    <!-- Navigation Header -->
+    <header class="navbar">
+        <div class="navbar-container">
+            <div class="navbar-brand">
+                <span class="brand-icon">🛡️</span>
+                <h1>Juwan Cyber Threat Intelligence</h1>
+                <span class="version">v2.0</span>
+            </div>
+            <div class="navbar-status">
+                <span class="status-badge" id="apiStatus">API: CONNECTING...</span>
+            </div>
+        </div>
+    </header>
 
-<h1 class="title">🛡 JUWAN CYBER THREAT INTELLIGENCE DASHBOARD</h1>
+    <!-- Main Container -->
+    <div class="dashboard-container">
+        
+        <!-- Left Sidebar - Key Metrics -->
+        <aside class="sidebar">
+            <div class="metrics-panel">
+                <h3>Key Metrics</h3>
+                
+                <!-- Threat Level Card -->
+                <div class="metric-card threat-card">
+                    <div class="metric-label">System Threat Level</div>
+                    <div class="threat-indicator" id="threatLevel">LOW</div>
+                    <div class="threat-bar">
+                        <div class="threat-bar-fill" style="width: 20%;"></div>
+                    </div>
+                </div>
 
-<div class="container">
+                <!-- Statistics Cards -->
+                <div class="metric-card">
+                    <div class="metric-label">Total Scans</div>
+                    <div class="metric-value" id="totalScans">0</div>
+                </div>
 
-<!-- System Threat Level -->
-<div class="card">
-<h2>System Threat Level</h2>
-<h3 id="threatLevel">LOW</h3>
-</div>
+                <div class="metric-card highlight">
+                    <div class="metric-label">Phishing Detected</div>
+                    <div class="metric-value alert" id="phishingCount">0</div>
+                </div>
 
-<!-- Live Statistics -->
-<div class="card">
-<h2>Live Statistics</h2>
-<p>Total Scans: <span id="totalScans">0</span></p>
-<p>Phishing Detected: <span id="phishingCount">0</span></p>
-<p>Legitimate Emails: <span id="legitimateCount">0</span></p>
-</div>
+                <div class="metric-card">
+                    <div class="metric-label">Legitimate</div>
+                    <div class="metric-value safe" id="legitimateCount">0</div>
+                </div>
 
-<!-- Threat Distribution Chart -->
-<div class="card">
-<h2>Threat Distribution</h2>
-<canvas id="pieChart"></canvas>
-</div>
+                <!-- Chart -->
+                <div class="analytics-chart">
+                    <h4>Detection Summary</h4>
+                    <div style="position: relative; height: 150px; width: 100%;">
+                        <canvas id="pieChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </aside>
 
-<!-- Email Phishing Detection -->
-<div class="card">
-<h2>Email Phishing Check</h2>
+        <!-- Main Content Area -->
+        <main class="main-content">
+            
+            <!-- Analysis Tabs -->
+            <div class="tabs-container">
+                <button class="tab-btn active" onclick="switchTab('email')">
+                    <span class="tab-icon">📧</span> Email
+                </button>
+                <button class="tab-btn" onclick="switchTab('url')">
+                    <span class="tab-icon">🔗</span> URL
+                </button>
+                <button class="tab-btn" onclick="switchTab('chat')">
+                    <span class="tab-icon">💬</span> Chat
+                </button>
+                <button class="tab-btn" onclick="switchTab('ensemble')">
+                    <span class="tab-icon">🎯</span> Ensemble
+                </button>
+            </div>
 
-<textarea id="emailText" placeholder="Paste email content..."></textarea>
+            <!-- Tab Content -->
+            <div class="tabs-content">
+                
+                <!-- Email Analysis Tab -->
+                <div class="tab-pane active" id="email-tab">
+                    <div class="analysis-panel">
+                        <div class="panel-header">
+                            <h2>📧 Email Phishing Detection</h2>
+                            <p>Analyze email content for phishing indicators</p>
+                        </div>
+                        <div class="panel-body">
+                            <textarea id="emailText" class="input-field" placeholder="Paste your email content here..." rows="6"></textarea>
+                            <button class="btn-primary" onclick="checkEmail()">🔍 Analyze Email</button>
+                            <div id="emailResult" class="result-container"></div>
+                        </div>
+                    </div>
+                </div>
 
-<button onclick="checkEmail()">Analyze Email</button>
+                <!-- URL Analysis Tab -->
+                <div class="tab-pane" id="url-tab">
+                    <div class="analysis-panel">
+                        <div class="panel-header">
+                            <h2>🔗 URL Phishing Detection</h2>
+                            <p>Check URLs for malicious characteristics</p>
+                        </div>
+                        <div class="panel-body">
+                            <input type="url" id="urlText" class="input-field" placeholder="Enter URL (e.g., http://example.com)" />
+                            <button class="btn-primary" onclick="checkURL()">🔍 Analyze URL</button>
+                            <div id="urlResult" class="result-container"></div>
+                        </div>
+                    </div>
+                </div>
 
-<pre id="emailResult"></pre>
-</div>
+                <!-- Chat Analysis Tab -->
+                <div class="tab-pane" id="chat-tab">
+                    <div class="analysis-panel">
+                        <div class="panel-header">
+                            <h2>💬 Chat/Message Scam Detection</h2>
+                            <p>Detect scam keywords and suspicious messages</p>
+                        </div>
+                        <div class="panel-body">
+                            <textarea id="chatText" class="input-field" placeholder="Paste your chat message here..." rows="6"></textarea>
+                            <button class="btn-primary" onclick="checkChat()">🔍 Analyze Chat</button>
+                            <div id="chatResult" class="result-container"></div>
+                        </div>
+                    </div>
+                </div>
 
-<!-- URL Phishing Detection -->
-<div class="card">
-<h2>URL Phishing Check</h2>
+                <!-- Ensemble Analysis Tab -->
+                <div class="tab-pane" id="ensemble-tab">
+                    <div class="analysis-panel">
+                        <div class="panel-header">
+                            <h2>🎯 Ensemble Threat Analysis</h2>
+                            <p>Combined multi-vector threat intelligence</p>
+                        </div>
+                        <div class="panel-body">
+                            <div class="ensemble-inputs">
+                                <div class="input-group">
+                                    <label>📧 Email Content</label>
+                                    <textarea id="emailText2" class="input-field" placeholder="Email text..." rows="4"></textarea>
+                                </div>
+                                <div class="input-group">
+                                    <label>🔗 URL</label>
+                                    <input type="url" id="urlText2" class="input-field" placeholder="URL..." />
+                                </div>
+                                <div class="input-group">
+                                    <label>💬 Chat Message</label>
+                                    <textarea id="chatText2" class="input-field" placeholder="Chat message..." rows="4"></textarea>
+                                </div>
+                            </div>
+                            <button class="btn-primary btn-large" onclick="checkEnsemble()">🚀 Run Ensemble Analysis</button>
+                            <div id="ensembleResult" class="result-container"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-<input id="urlText" placeholder="Paste URL here"/>
+            <!-- Analytics Chart -->
+            <div class="analytics-panel">
+                <h3>Threat Distribution</h3>
+                <div style="position: relative; height: 280px; width: 100%;">
+                    <canvas id="threatChart"></canvas>
+                </div>
+            </div>
+        </main>
+    </div>
 
-<button onclick="checkURL()">Analyze URL</button>
+    <!-- Footer -->
+    <footer class="footer">
+        <p>Juwan Cyber Threat Intelligence API v2.0 | Advanced Phishing & Scam Detection System</p>
+        <p><a href="http://127.0.0.1:8000/docs" target="_blank">API Documentation</a></p>
+    </footer>
 
-<pre id="urlResult"></pre>
-</div>
+    <script src="app.js"></script>
+    <script>
+        // Tab switching functionality
+        function switchTab(tabName) {
+            // Hide all tab panes
+            const panes = document.querySelectorAll('.tab-pane');
+            panes.forEach(pane => pane.classList.remove('active'));
+            
+            // Remove active class from all buttons
+            const buttons = document.querySelectorAll('.tab-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            
+            // Show selected tab pane
+            document.getElementById(tabName + '-tab').classList.add('active');
+            
+            // Highlight clicked button
+            event.target.closest('.tab-btn').classList.add('active');
+        }
 
-<!-- Chat Scam Detection -->
-<div class="card">
-<h2>Chat Scam Detection</h2>
+        // Check API status on page load
+        window.addEventListener('load', () => {
+            fetch('http://127.0.0.1:8000/health')
+                .then(r => r.json())
+                .then(d => {
+                    document.getElementById('apiStatus').textContent = '✅ API: CONNECTED';
+                    document.getElementById('apiStatus').style.color = '#22c55e';
+                })
+                .catch(e => {
+                    document.getElementById('apiStatus').textContent = '❌ API: OFFLINE';
+                    document.getElementById('apiStatus').style.color = '#ef4444';
+                });
+        });
 
-<textarea id="chatText" placeholder="Paste chat message..."></textarea>
+        // Update ensemble inputs when single tab inputs change
+        function syncInputs() {
+            document.getElementById('emailText2').value = document.getElementById('emailText').value;
+            document.getElementById('urlText2').value = document.getElementById('urlText').value;
+            document.getElementById('chatText2').value = document.getElementById('chatText').value;
+        }
 
-<button onclick="checkChat()">Analyze Chat</button>
-
-<pre id="chatResult"></pre>
-</div>
-
-<!-- Ensemble Decision -->
-<div class="card">
-<h2>Ensemble Threat Decision</h2>
-
-<button onclick="checkEnsemble()">Run Final Decision</button>
-
-<pre id="ensembleResult"></pre>
-</div>
-
-<!-- Threat Dashboard -->
-<div class="card">
-<h2>Threat Dashboard</h2>
-
-<canvas id="threatChart"></canvas>
-
-</div>
-
-</div>
-
-<script src="app.js"></script>
-
+        // Listen for input changes
+        document.getElementById('emailText').addEventListener('change', syncInputs);
+        document.getElementById('urlText').addEventListener('change', syncInputs);
+        document.getElementById('chatText').addEventListener('change', syncInputs);
+    </script>
 </body>
-
 </html>

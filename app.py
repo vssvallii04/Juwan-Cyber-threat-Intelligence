@@ -1,7 +1,9 @@
 from fastapi import FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 import uuid
+import os
 
 # -------------------------
 # Configuration & Logging
@@ -33,17 +35,22 @@ app = FastAPI(
     description="Production-grade Cyber Threat Intelligence API with email, URL, and chat phishing detection"
 )
 
-# Enable CORS with configured origins
+# Enable CORS - Allow all origins for demo purposes
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
-    allow_credentials=settings.CORS_ALLOW_CREDENTIALS,
-    allow_methods=settings.CORS_ALLOW_METHODS,
-    allow_headers=settings.CORS_ALLOW_HEADERS,
+    allow_origins=["*"],  # Allow all origins including file:// protocol
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Register custom exception handlers
 register_exception_handlers(app)
+
+# Mount static frontend files
+frontend_path = os.path.join(os.path.dirname(__file__), "frontend")
+if os.path.exists(frontend_path):
+    app.mount("/frontend", StaticFiles(directory=frontend_path), name="frontend")
 
 # -------------------------
 # Request Schemas
