@@ -1,0 +1,81 @@
+version: "3.9"
+
+services:
+  # ─── PostgreSQL Database ──────────────────────────────────────────
+  db:
+    image: postgres:15-alpine
+    container_name: cti_v3_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-cti_v3}
+      POSTGRES_USER: ${POSTGRES_USER:-cti_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-cti_secret}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-cti_user} -d ${POSTGRES_DB:-cti_v3}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── Redis (Celery Broker) ────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: cti_v3_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── CTI v3 API ───────────────────────────────────────────────────
+  app:
+    build: .
+    container_name: cti_v3_app
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-cti_user}:${POSTGRES_PASSWORD:-cti_secret}@db:5432/${POSTGRES_DB:-cti_v3}
+      DATABASE_SYNC_URL: postgresql+psycopg2://${POSTGRES_USER:-cti_user}:${POSTGRES_PASSWORD:-cti_secret}@db:5432/${POSTGRES_DB:-cti_v3}
+      REDIS_URL: redis://redis:6379/0
+      ENVIRONMENT: ${ENVIRONMENT:-dev}
+    volumes:
+      - .:/app
+      - model_cache:/app/models/.cache
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: uvicorn app:app --host 0.0.0.0 --port 8000 --reload
+
+  # ─── Celery Worker (Campaign Clusterer) ───────────────────────────
+  worker:
+    build: .
+    container_name: cti_v3_worker
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-cti_user}:${POSTGRES_PASSWORD:-cti_secret}@db:5432/${POSTGRES_DB:-cti_v3}
+      DATABASE_SYNC_URL: postgresql+psycopg2://${POSTGRES_USER:-cti_user}:${POSTGRES_PASSWORD:-cti_secret}@db:5432/${POSTGRES_DB:-cti_v3}
+      REDIS_URL: redis://redis:6379/0
+    volumes:
+      - .:/app
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: celery -A intelligence.campaign_clusterer worker --loglevel=info --beat
+
+volumes:
+  postgres_data:
+  redis_data:
+  model_cache:
