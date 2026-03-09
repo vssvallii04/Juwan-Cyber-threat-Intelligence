@@ -1,258 +1,258 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Juwan CTI v3.0 — Cyber Threat Intelligence Platform</title>
-  <meta name="description" content="Real-time multi-modal cyber threat intelligence — email, URL, chat, voice, image analysis with campaign clustering and STIX/TAXII export." />
+  <meta name="description"
+    content="Real-time multi-modal cyber threat intelligence — email, URL, chat, voice, image analysis with campaign clustering and STIX/TAXII export." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
   <script src="https://d3js.org/d3.v7.min.js"></script>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="/frontend/style.css" />
 </head>
+
 <body>
 
-<!-- ── SIDEBAR ──────────────────────────────────────────────── -->
-<aside class="sidebar">
-  <div class="brand">
-    <div class="brand-icon">⚡</div>
-    <div>
-      <div class="brand-name">Juwan CTI</div>
-      <div class="brand-version">v3.0.0</div>
-    </div>
-  </div>
-  <nav class="nav">
-    <a class="nav-item active" data-panel="dashboard">
-      <span class="nav-icon">⊡</span> Dashboard
-    </a>
-    <a class="nav-item" data-panel="email">
-      <span class="nav-icon">✉</span> Email
-    </a>
-    <a class="nav-item" data-panel="url">
-      <span class="nav-icon">🔗</span> URL / APK
-    </a>
-    <a class="nav-item" data-panel="chat">
-      <span class="nav-icon">💬</span> Chat
-    </a>
-    <a class="nav-item" data-panel="voice">
-      <span class="nav-icon">🎙</span> Voice
-    </a>
-    <a class="nav-item" data-panel="image">
-      <span class="nav-icon">🖼</span> Image / QR
-    </a>
-    <a class="nav-item" data-panel="ensemble">
-      <span class="nav-icon">⊕</span> Ensemble
-    </a>
-    <a class="nav-item" data-panel="campaigns">
-      <span class="nav-icon">🗄</span> Campaigns
-    </a>
-  </nav>
-  <div class="sidebar-footer">
-    <div class="status-dot"></div>
-    <span id="server-status">Connecting…</span>
-  </div>
-</aside>
-
-<!-- ── MAIN ─────────────────────────────────────────────────── -->
-<main class="main">
-
-  <!-- TOPBAR -->
-  <header class="topbar">
-    <h1 class="topbar-title" id="panel-title">Dashboard</h1>
-    <div class="topbar-meta">
-      <span class="tag tag-live">● LIVE</span>
-      <span id="clock" class="clock"></span>
-    </div>
-  </header>
-
-  <!-- ═══ DASHBOARD PANEL ═══ -->
-  <section id="panel-dashboard" class="panel active">
-
-    <!-- Stats row -->
-    <div class="stats-row">
-      <div class="stat-card" id="stat-total">
-        <div class="stat-label">Analyses Today</div>
-        <div class="stat-value" id="val-total">—</div>
-        <div class="stat-sub">all channels</div>
-      </div>
-      <div class="stat-card threat-high" id="stat-high">
-        <div class="stat-label">HIGH Threats</div>
-        <div class="stat-value" id="val-high">—</div>
-        <div class="stat-sub">critical IOCs</div>
-      </div>
-      <div class="stat-card threat-medium" id="stat-medium">
-        <div class="stat-label">MEDIUM Threats</div>
-        <div class="stat-value" id="val-medium">—</div>
-        <div class="stat-sub">suspicious</div>
-      </div>
-      <div class="stat-card" id="stat-campaigns">
-        <div class="stat-label">Active Campaigns</div>
-        <div class="stat-value" id="val-campaigns">—</div>
-        <div class="stat-sub">clustered this week</div>
+  <!-- ── SIDEBAR ──────────────────────────────────────────────── -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-icon">⚡</div>
+      <div>
+        <div class="brand-name">Juwan CTI</div>
+        <div class="brand-version">v3.0.0</div>
       </div>
     </div>
-
-    <!-- D3 Campaign Timeline -->
-    <div class="card">
-      <div class="card-header">
-        <span>Campaign Activity Timeline</span>
-        <span class="tag">D3.js</span>
-      </div>
-      <div id="d3-timeline"></div>
+    <nav class="nav">
+      <a class="nav-item active" data-panel="dashboard">
+        <span class="nav-icon">⊡</span> Dashboard
+      </a>
+      <a class="nav-item" data-panel="email">
+        <span class="nav-icon">✉</span> Email
+      </a>
+      <a class="nav-item" data-panel="url">
+        <span class="nav-icon">🔗</span> URL / APK
+      </a>
+      <a class="nav-item" data-panel="chat">
+        <span class="nav-icon">💬</span> Chat
+      </a>
+      <a class="nav-item" data-panel="image">
+        <span class="nav-icon">🖼</span> Image / QR
+      </a>
+      <a class="nav-item" data-panel="ensemble">
+        <span class="nav-icon">⊕</span> Ensemble
+      </a>
+      <a class="nav-item" data-panel="campaigns">
+        <span class="nav-icon">🗄</span> Campaigns
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="status-dot"></div>
+      <span id="server-status">Connecting…</span>
     </div>
+  </aside>
 
-    <!-- Channel breakdown -->
-    <div class="two-col">
+  <!-- ── MAIN ─────────────────────────────────────────────────── -->
+  <main class="main">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <h1 class="topbar-title" id="panel-title">Dashboard</h1>
+      <div class="topbar-meta">
+        <span class="tag tag-live">● LIVE</span>
+        <span id="clock" class="clock"></span>
+      </div>
+    </header>
+
+    <!-- ═══ DASHBOARD PANEL ═══ -->
+    <section id="panel-dashboard" class="panel active">
+
+      <!-- Stats row -->
+      <div class="stats-row">
+        <div class="stat-card" id="stat-total">
+          <div class="stat-label">Analyses Today</div>
+          <div class="stat-value" id="val-total">—</div>
+          <div class="stat-sub">all channels</div>
+        </div>
+        <div class="stat-card threat-high" id="stat-high">
+          <div class="stat-label">HIGH Threats</div>
+          <div class="stat-value" id="val-high">—</div>
+          <div class="stat-sub">critical IOCs</div>
+        </div>
+        <div class="stat-card threat-medium" id="stat-medium">
+          <div class="stat-label">MEDIUM Threats</div>
+          <div class="stat-value" id="val-medium">—</div>
+          <div class="stat-sub">suspicious</div>
+        </div>
+        <div class="stat-card" id="stat-campaigns">
+          <div class="stat-label">Active Campaigns</div>
+          <div class="stat-value" id="val-campaigns">—</div>
+          <div class="stat-sub">clustered this week</div>
+        </div>
+      </div>
+
+      <!-- D3 Campaign Timeline -->
       <div class="card">
-        <div class="card-header"><span>Channel Distribution</span></div>
-        <div class="channel-bars" id="channel-bars">
-          <div class="channel-bar-row">
-            <span>Email</span>
-            <div class="bar-track"><div class="bar" id="bar-email" style="width:0%"></div></div>
-            <span id="pct-email">0%</span>
+        <div class="card-header">
+          <span>Campaign Activity Timeline</span>
+          <span class="tag">D3.js</span>
+        </div>
+        <div id="d3-timeline"></div>
+      </div>
+
+      <!-- Channel breakdown -->
+      <div class="two-col">
+        <div class="card">
+          <div class="card-header"><span>Channel Distribution</span></div>
+          <div class="channel-bars" id="channel-bars">
+            <div class="channel-bar-row">
+              <span>Email</span>
+              <div class="bar-track">
+                <div class="bar" id="bar-email" style="width:0%"></div>
+              </div>
+              <span id="pct-email">0%</span>
+            </div>
+            <div class="channel-bar-row">
+              <span>URL</span>
+              <div class="bar-track">
+                <div class="bar bar-url" id="bar-url" style="width:0%"></div>
+              </div>
+              <span id="pct-url">0%</span>
+            </div>
+            <div class="channel-bar-row">
+              <span>Chat</span>
+              <div class="bar-track">
+                <div class="bar bar-chat" id="bar-chat" style="width:0%"></div>
+              </div>
+              <span id="pct-chat">0%</span>
+            </div>
+            <div class="channel-bar-row">
+              <span>Image</span>
+              <div class="bar-track">
+                <div class="bar bar-image" id="bar-image" style="width:0%"></div>
+              </div>
+              <span id="pct-image">0%</span>
+            </div>
           </div>
-          <div class="channel-bar-row">
-            <span>URL</span>
-            <div class="bar-track"><div class="bar bar-url" id="bar-url" style="width:0%"></div></div>
-            <span id="pct-url">0%</span>
+        </div>
+
+        <!-- Recent campaigns -->
+        <div class="card">
+          <div class="card-header"><span>Active Campaigns</span>
+            <button class="btn-small" onclick="loadCampaigns()">↻ Refresh</button>
           </div>
-          <div class="channel-bar-row">
-            <span>Chat</span>
-            <div class="bar-track"><div class="bar bar-chat" id="bar-chat" style="width:0%"></div></div>
-            <span id="pct-chat">0%</span>
-          </div>
-          <div class="channel-bar-row">
-            <span>Voice</span>
-            <div class="bar-track"><div class="bar bar-voice" id="bar-voice" style="width:0%"></div></div>
-            <span id="pct-voice">0%</span>
-          </div>
-          <div class="channel-bar-row">
-            <span>Image</span>
-            <div class="bar-track"><div class="bar bar-image" id="bar-image" style="width:0%"></div></div>
-            <span id="pct-image">0%</span>
+          <div id="campaign-list">
+            <p class="muted">Loading…</p>
           </div>
         </div>
       </div>
 
-      <!-- Recent campaigns -->
+    </section>
+
+    <!-- ═══ EMAIL PANEL ═══ -->
+    <section id="panel-email" class="panel">
       <div class="card">
-        <div class="card-header"><span>Active Campaigns</span>
-          <button class="btn-small" onclick="loadCampaigns()">↻ Refresh</button>
-        </div>
-        <div id="campaign-list"><p class="muted">Loading…</p></div>
+        <div class="card-header"><span>Email Phishing + AI-Origin Detector</span></div>
+        <textarea id="email-input" class="input-area" placeholder="Paste email body here…" rows="7"></textarea>
+        <button class="btn" onclick="analyzeEmail()">Analyze Email</button>
       </div>
-    </div>
+      <div id="email-result" class="result-box hidden"></div>
+    </section>
 
-  </section>
-
-  <!-- ═══ EMAIL PANEL ═══ -->
-  <section id="panel-email" class="panel">
-    <div class="card">
-      <div class="card-header"><span>Email Phishing + AI-Origin Detector</span></div>
-      <textarea id="email-input" class="input-area" placeholder="Paste email body here…" rows="7"></textarea>
-      <button class="btn" onclick="analyzeEmail()">Analyze Email</button>
-    </div>
-    <div id="email-result" class="result-box hidden"></div>
-  </section>
-
-  <!-- ═══ URL PANEL ═══ -->
-  <section id="panel-url" class="panel">
-    <div class="card">
-      <div class="card-header"><span>URL & APK-Drop Risk Analyzer</span></div>
-      <input id="url-input" class="input-field" placeholder="https://example.com/path" />
-      <div class="toggle-row">
-        <label class="toggle">
-          <input type="checkbox" id="apk-mode" />
-          <span class="slider"></span>
-        </label>
-        <span>Extended APK-risk mode (makes HTTP requests)</span>
+    <!-- ═══ URL PANEL ═══ -->
+    <section id="panel-url" class="panel">
+      <div class="card">
+        <div class="card-header"><span>URL & APK-Drop Risk Analyzer</span></div>
+        <input id="url-input" class="input-field" placeholder="https://example.com/path" />
+        <div class="toggle-row">
+          <label class="toggle">
+            <input type="checkbox" id="apk-mode" />
+            <span class="slider"></span>
+          </label>
+          <span>Extended APK-risk mode (makes HTTP requests)</span>
+        </div>
+        <button class="btn" onclick="analyzeURL()">Analyze URL</button>
       </div>
-      <button class="btn" onclick="analyzeURL()">Analyze URL</button>
-    </div>
-    <div id="url-result" class="result-box hidden"></div>
-  </section>
+      <div id="url-result" class="result-box hidden"></div>
+    </section>
 
-  <!-- ═══ CHAT PANEL ═══ -->
-  <section id="panel-chat" class="panel">
-    <div class="card">
-      <div class="card-header"><span>Chat / Message Scam Detector</span></div>
-      <textarea id="chat-input" class="input-area" placeholder="Paste chat or SMS message here…" rows="5"></textarea>
-      <button class="btn" onclick="analyzeChat()">Analyze Message</button>
-    </div>
-    <div id="chat-result" class="result-box hidden"></div>
-  </section>
-
-  <!-- ═══ VOICE PANEL ═══ -->
-  <section id="panel-voice" class="panel">
-    <div class="card">
-      <div class="card-header"><span>Vishing Transcript Analyzer</span></div>
-      <textarea id="voice-input" class="input-area" placeholder="Paste call transcript or voice-to-text output here…" rows="6"></textarea>
-      <p class="hint">Audio file support: run <code>POST /analyze/voice</code> with <code>audio_path</code> directly via API.</p>
-      <button class="btn" onclick="analyzeVoice()">Analyze Transcript</button>
-    </div>
-    <div id="voice-result" class="result-box hidden"></div>
-  </section>
-
-  <!-- ═══ IMAGE PANEL ═══ -->
-  <section id="panel-image" class="panel">
-    <div class="card">
-      <div class="card-header"><span>Deepfake & Tamper Detection</span></div>
-      <input id="image-input" class="input-field" placeholder="Absolute path to image (.jpg / .png)" />
-      <div class="toggle-row">
-        <label class="toggle">
-          <input type="checkbox" id="qr-mode" />
-          <span class="slider"></span>
-        </label>
-        <span>QR Code mode (decode & analyze embedded URL)</span>
+    <!-- ═══ CHAT PANEL ═══ -->
+    <section id="panel-chat" class="panel">
+      <div class="card">
+        <div class="card-header"><span>Chat / Message Scam Detector</span></div>
+        <textarea id="chat-input" class="input-area" placeholder="Paste chat or SMS message here…" rows="5"></textarea>
+        <button class="btn" onclick="analyzeChat()">Analyze Message</button>
       </div>
-      <button class="btn" onclick="analyzeImage()">Analyze Image</button>
-    </div>
-    <div id="image-result" class="result-box hidden"></div>
-  </section>
+      <div id="chat-result" class="result-box hidden"></div>
+    </section>
 
-  <!-- ═══ ENSEMBLE PANEL ═══ -->
-  <section id="panel-ensemble" class="panel">
-    <div class="card">
-      <div class="card-header"><span>5-Channel Ensemble Threat Assessment</span></div>
-      <div class="ensemble-grid">
-        <div>
-          <label>Email <span class="weight-badge">35%</span></label>
-          <textarea id="ens-email" class="input-area sm" placeholder="Email body…" rows="3"></textarea>
+
+    <!-- ═══ IMAGE PANEL ═══ -->
+    <section id="panel-image" class="panel">
+      <div class="card">
+        <div class="card-header"><span>Deepfake & Tamper Detection</span></div>
+        <input id="image-input" class="input-field" placeholder="Absolute path to image (.jpg / .png)" />
+        <div class="toggle-row">
+          <label class="toggle">
+            <input type="checkbox" id="qr-mode" />
+            <span class="slider"></span>
+          </label>
+          <span>QR Code mode (decode & analyze embedded URL)</span>
         </div>
-        <div>
-          <label>URL <span class="weight-badge">25%</span></label>
-          <input id="ens-url" class="input-field" placeholder="https://…" />
+        <button class="btn" onclick="analyzeImage()">Analyze Image</button>
+      </div>
+      <div id="image-result" class="result-box hidden"></div>
+    </section>
+
+    <!-- ═══ ENSEMBLE PANEL ═══ -->
+    <section id="panel-ensemble" class="panel">
+      <div class="card">
+        <div class="card-header"><span>4-Channel Ensemble Threat Assessment</span></div>
+        <div class="ensemble-grid">
+          <div>
+            <label>Email <span class="weight-badge">40%</span></label>
+            <textarea id="ens-email" class="input-area sm" placeholder="Email body…" rows="3"></textarea>
+          </div>
+          <div>
+            <label>URL <span class="weight-badge">25%</span></label>
+            <input id="ens-url" class="input-field" placeholder="https://…" />
+          </div>
+          <div>
+            <label>Chat <span class="weight-badge">20%</span></label>
+            <textarea id="ens-chat" class="input-area sm" placeholder="Chat message…" rows="3"></textarea>
+          </div>
+          <div>
+            <label>Image <span class="weight-badge">15%</span></label>
+            <input id="ens-image" class="input-field" placeholder="Path to image..." />
+          </div>
         </div>
-        <div>
-          <label>Chat <span class="weight-badge">15%</span></label>
-          <textarea id="ens-chat" class="input-area sm" placeholder="Chat message…" rows="3"></textarea>
+        <button class="btn" onclick="analyzeEnsemble()">Run Ensemble Analysis</button>
+      </div>
+      <div id="ensemble-result" class="result-box hidden"></div>
+    </section>
+
+    <!-- ═══ CAMPAIGNS PANEL ═══ -->
+    <section id="panel-campaigns" class="panel">
+      <div class="card">
+        <div class="card-header">
+          <span>Campaign Intelligence</span>
+          <div>
+            <button class="btn-small" onclick="loadCampaigns()">↻ Refresh</button>
+            <a class="btn-small" href="/taxii/" target="_blank">TAXII Feed ↗</a>
+          </div>
         </div>
-        <div>
-          <label>Voice Transcript <span class="weight-badge">15%</span></label>
-          <textarea id="ens-voice" class="input-area sm" placeholder="Transcript…" rows="3"></textarea>
+        <div id="campaigns-detail">
+          <p class="muted">Loading campaigns…</p>
         </div>
       </div>
-      <button class="btn" onclick="analyzeEnsemble()">Run Ensemble Analysis</button>
-    </div>
-    <div id="ensemble-result" class="result-box hidden"></div>
-  </section>
+    </section>
 
-  <!-- ═══ CAMPAIGNS PANEL ═══ -->
-  <section id="panel-campaigns" class="panel">
-    <div class="card">
-      <div class="card-header">
-        <span>Campaign Intelligence</span>
-        <div>
-          <button class="btn-small" onclick="loadCampaigns()">↻ Refresh</button>
-          <a class="btn-small" href="/taxii/" target="_blank">TAXII Feed ↗</a>
-        </div>
-      </div>
-      <div id="campaigns-detail"><p class="muted">Loading campaigns…</p></div>
-    </div>
-  </section>
+  </main>
 
-</main>
-
-<script src="app.js"></script>
+  <script src="/frontend/app.js"></script>
 </body>
+
 </html>

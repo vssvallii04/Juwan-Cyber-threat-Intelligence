@@ -17,7 +17,7 @@ from logger import get_logger
 from exceptions import register_exception_handlers, ValidationError, ProcessingError
 from validation import (
     validate_email_input, validate_url_input, validate_chat_input,
-    validate_image_path, validate_audio_path, validate_transcript_input,
+    validate_image_path,
 )
 
 logger = get_logger(__name__)
@@ -78,9 +78,6 @@ class URLRequest(BaseModel):
 class ChatRequest(BaseModel):
     text: str
 
-class VoiceRequest(BaseModel):
-    audio_path: Optional[str] = None
-    transcript: Optional[str] = None
 
 class ImageRequest(BaseModel):
     image_path: str
@@ -92,7 +89,6 @@ class EnsembleRequest(BaseModel):
     email:  Optional[str] = None
     url:    Optional[str] = None
     chat:   Optional[str] = None
-    voice_transcript: Optional[str] = None
     image_path: Optional[str] = None
 
 
@@ -148,7 +144,7 @@ def health():
         "status": "healthy",
         "service": settings.API_TITLE,
         "version": settings.API_VERSION,
-        "channels": ["email", "url", "chat", "voice", "image", "ensemble"],
+        "channels": ["email", "url", "chat", "image", "ensemble"],
         "database": "postgresql",
         "debug": settings.DEBUG,
     }
@@ -340,54 +336,7 @@ def analyze_chat(req: ChatRequest):
         raise ProcessingError(str(e), module="chat")
 
 
-# ═════════════════════════════════════════════════════════════════════
-# VOICE — Whisper ASR + DistilBERT vishing classifier
-# ═════════════════════════════════════════════════════════════════════
 
-@app.post("/analyze/voice", tags=["Detection v3"], status_code=status.HTTP_200_OK)
-def analyze_voice(req: VoiceRequest):
-    """Vishing detection from audio file or transcript text."""
-    try:
-        if not req.audio_path and not req.transcript:
-            raise ValidationError("Provide either audio_path or transcript")
-
-        audio_path = None
-        if req.audio_path:
-            audio_path = validate_audio_path(req.audio_path)
-        transcript = validate_transcript_input(req.transcript) if req.transcript else None
-
-        logger.info("Voice analysis started")
-
-        from models.vishing_model import analyze_voice as _analyze_voice
-        result = _analyze_voice(
-            audio_path=str(audio_path) if audio_path else None,
-            transcript=transcript,
-        )
-
-        confidence = result.get("confidence", 0.0)
-        prediction = result.get("prediction", "unknown")
-        artifact_id = str(uuid.uuid4())
-
-        response = {
-            "status": "success",
-            "artifact_id": artifact_id,
-            "module": "voice",
-            **result,
-            "threat_level": _threat_level(confidence, prediction),
-        }
-
-        _log_ioc(artifact_id, "voice", confidence, prediction,
-                 result.get("indicators", []), result.get("indicator_weights", {}),
-                 transcript or str(audio_path))
-
-        logger.info(f"Voice done: {prediction} @ {confidence}")
-        return response
-
-    except ValidationError as e:
-        raise e
-    except Exception as e:
-        logger.error(f"Voice error: {e}", exc_info=True)
-        raise ProcessingError(str(e), module="voice")
 
 
 # ═════════════════════════════════════════════════════════════════════
@@ -486,9 +435,9 @@ def analyze_qr(req: QRRequest):
 
 @app.post("/analyze/ensemble", tags=["Detection"], status_code=status.HTTP_200_OK)
 def analyze_ensemble(req: EnsembleRequest):
-    """5-channel combined threat assessment: email · url · chat · voice · image."""
+    """4-channel combined threat assessment: email · url · chat · image."""
     try:
-        if not any([req.email, req.url, req.chat, req.voice_transcript, req.image_path]):
+        if not any([req.email, req.url, req.chat, req.image_path]):
             raise ValidationError("Provide at least one input channel")
 
         logger.info("Ensemble analysis started")
@@ -526,12 +475,7 @@ def analyze_ensemble(req: EnsembleRequest):
             except Exception as e:
                 logger.warning(f"Ensemble chat failed: {e}")
 
-        if req.voice_transcript and req.voice_transcript.strip():
-            try:
-                from models.vishing_model import analyze_voice as _av
-                voice_result = _av(transcript=validate_transcript_input(req.voice_transcript))
-            except Exception as e:
-                logger.warning(f"Ensemble voice failed: {e}")
+
 
         if req.image_path and req.image_path.strip():
             try:
@@ -550,7 +494,7 @@ def analyze_ensemble(req: EnsembleRequest):
 
         decision = ensemble_decision(
             email=email_result, url=url_result, chat=chat_result,
-            voice=voice_result, image=image_result,
+            image=image_result,
         )
 
         artifact_id = str(uuid.uuid4())
@@ -565,7 +509,7 @@ def analyze_ensemble(req: EnsembleRequest):
             **decision,
             "channel_results": {
                 "email": email_result, "url": url_result, "chat": chat_result,
-                "voice": voice_result, "image": image_result,
+                "image": image_result,
             },
         }
 

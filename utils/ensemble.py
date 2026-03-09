@@ -1,6 +1,6 @@
 """
 utils/ensemble.py — Juwan CTI v3.0
-5-channel weighted ensemble: Email · URL · Chat · Voice · Image
+4-channel weighted ensemble: Email · URL · Chat · Image
 Single source of truth for all channel weights.
 """
 from config import settings
@@ -8,13 +8,12 @@ from logger import get_logger
 
 logger = get_logger(__name__)
 
-# ── Channel weights (loaded from config, never hardcoded) ─────────────
+# ── Channel weights (Voice channel removed — redistributed to email/chat) ────
 WEIGHTS = {
-    "email": settings.WEIGHT_EMAIL,   # 0.35
-    "url":   settings.WEIGHT_URL,     # 0.25
-    "chat":  settings.WEIGHT_CHAT,    # 0.15
-    "voice": settings.WEIGHT_VOICE,   # 0.15
-    "image": settings.WEIGHT_IMAGE,   # 0.10
+    "email": 0.40,
+    "url":   0.25,
+    "chat":  0.20,
+    "image": 0.15,
 }
 
 # Threat thresholds (loaded from config)
@@ -28,11 +27,10 @@ def ensemble_decision(
     email: dict = None,
     url: dict = None,
     chat: dict = None,
-    voice: dict = None,
     image: dict = None,
 ) -> dict:
     """
-    Combine results from up to 5 detection channels using configured weights.
+    Combine results from up to 4 detection channels using configured weights.
 
     Args:
         Each channel accepts a dict with at minimum:
@@ -56,7 +54,6 @@ def ensemble_decision(
         "email": (email, "Email content resembles phishing patterns"),
         "url":   (url,   "Suspicious URL structure or APK delivery detected"),
         "chat":  (chat,  "Conversation intent appears malicious"),
-        "voice": (voice, "Voice transcript shows scam indicators"),
         "image": (image, "Image shows deepfake or tamper evidence"),
     }
 
@@ -64,7 +61,6 @@ def ensemble_decision(
         "email": "phishing",
         "url":   "phishing",
         "chat":  "scam",
-        "voice": "vishing",
         "image": "deepfake",
     }
 

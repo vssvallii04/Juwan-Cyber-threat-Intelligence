@@ -30,16 +30,49 @@ MODEL_DIR = Path(__file__).parent.parent / "models"
 DATA_DIR  = Path(__file__).parent.parent / "data"
 
 
-def extract_features(texts: list[str]) -> np.ndarray:
-    rows = []
-    for i, text in enumerate(texts):
-        print(f"  Extracting features [{i+1}/{len(texts)}]...", end="\r")
+CACHE_PATH = DATA_DIR / "feature_cache.npz"
+
+
+def extract_features(texts: list[str], labels: list[int]) -> tuple[np.ndarray, np.ndarray]:
+    """
+    Extract GPT-2 perplexity + stylometrics. Caches to data/feature_cache.npz.
+    On re-run, only processes new samples beyond the cached count.
+    """
+    cached_X = None
+    cached_y = None
+    start = 0
+
+    if CACHE_PATH.exists():
+        cache = np.load(CACHE_PATH, allow_pickle=True)
+        cached_X = cache["X"]
+        cached_y = cache["y"]
+        start = len(cached_X)
+        if start >= len(texts):
+            print(f"[CACHE] All {start} features already cached. Skipping extraction.")
+            return cached_X, cached_y
+        print(f"[CACHE] Resuming from sample {start}/{len(texts)}")
+
+    rows = list(cached_X) if cached_X is not None else []
+    labs = list(cached_y) if cached_y is not None else []
+
+    for i, (text, label) in enumerate(zip(texts[start:], labels[start:]), start=start+1):
         perplexity   = _compute_perplexity(text)
         stylometrics = _extract_stylometrics(text)
         row = [perplexity] + list(stylometrics.values())
         rows.append(row)
-    print()
-    return np.array(rows)
+        labs.append(label)
+
+        if i % 50 == 0 or i == len(texts):
+            print(f"  [{i:>5}/{len(texts)}] Extracting features... ppl={perplexity:.1f}", flush=True)
+            # Save checkpoint every 50 samples
+            np.savez(CACHE_PATH, X=np.array(rows), y=np.array(labs))
+
+    X = np.array(rows)
+    y = np.array(labs)
+    np.savez(CACHE_PATH, X=X, y=y)
+    print(f"[CACHE] Saved {len(X)} feature rows to {CACHE_PATH}")
+    return X, y
+
 
 
 def load_dataset() -> tuple[list[str], list[int]]:
@@ -91,8 +124,7 @@ def main():
     print(f"[INFO] Total samples: {len(texts)} | AI: {sum(labels)} | Human: {len(labels)-sum(labels)}")
 
     print("\n[STEP 1] Extracting features (GPT-2 perplexity + stylometrics)...")
-    X = extract_features(texts)
-    y = np.array(labels)
+    X, y = extract_features(texts, labels)
 
     print("[STEP 2] Splitting train/test (80/20)...")
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y if len(set(y)) > 1 else None)

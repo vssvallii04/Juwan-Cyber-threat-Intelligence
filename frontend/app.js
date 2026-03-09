@@ -44,8 +44,8 @@ document.querySelectorAll(".nav-item").forEach(item => {
     const titles = {
       dashboard: "Dashboard", email: "Email Analysis",
       url: "URL / APK Risk", chat: "Chat Scam Detector",
-      voice: "Vishing Analyzer", image: "Deepfake & Image Fraud",
-      ensemble: "5-Channel Ensemble", campaigns: "Campaign Intelligence",
+      image: "Deepfake & Image Fraud",
+      ensemble: "4-Channel Ensemble", campaigns: "Campaign Intelligence",
     };
     document.getElementById("panel-title").textContent = titles[item.dataset.panel] || "";
     if (item.dataset.panel === "dashboard") loadDashboard();
@@ -63,31 +63,31 @@ function renderResult(el, data) {
   else el.classList.add("threat-low");
 
   const icon = data.prediction?.includes("phish") || data.prediction?.includes("scam")
-    || data.prediction?.includes("deepfake") || data.prediction?.includes("vishing")
+    || data.prediction?.includes("deepfake")
     ? "⚠ THREAT DETECTED" : "✓ CLEAN";
 
   const lines = [
     `${icon}`,
     `─────────────────────────────────`,
     `Prediction  : ${data.prediction || "—"}`,
-    `Confidence  : ${((data.confidence || 0)*100).toFixed(1)}%`,
+    `Confidence  : ${((data.confidence || 0) * 100).toFixed(1)}%`,
     `Threat Level: ${data.threat_level || "—"}`,
   ];
 
   if (data.indicators?.length)
-    lines.push(`Indicators  : ${data.indicators.slice(0,8).join(", ")}`);
+    lines.push(`Indicators  : ${data.indicators.slice(0, 8).join(", ")}`);
   if (data.ai_origin?.prediction)
-    lines.push(`AI-Origin   : ${data.ai_origin.prediction} (${((data.ai_origin.confidence||0)*100).toFixed(1)}%)`);
+    lines.push(`AI-Origin   : ${data.ai_origin.prediction} (${((data.ai_origin.confidence || 0) * 100).toFixed(1)}%)`);
   if (data.apk_delivery_risk !== undefined)
     lines.push(`APK Risk    : ${data.apk_delivery_risk ? "YES ⚠" : "No"}`);
   if (data.transcript)
     lines.push(`Transcript  : "${data.transcript.slice(0, 120)}…"`);
   if (data.deepfake)
-    lines.push(`Deepfake    : ${((data.deepfake.confidence||0)*100).toFixed(1)}%`);
+    lines.push(`Deepfake    : ${((data.deepfake.confidence || 0) * 100).toFixed(1)}%`);
   if (data.tamper_ela)
-    lines.push(`ELA Tamper  : ${((data.tamper_ela.tamper_probability||0)*100).toFixed(1)}%`);
+    lines.push(`ELA Tamper  : ${((data.tamper_ela.tamper_probability || 0) * 100).toFixed(1)}%`);
   if (data.qr_found !== undefined)
-    lines.push(`QR Found    : ${data.qr_found ? "Yes → " + (data.decoded_url||"") : "No"}`);
+    lines.push(`QR Found    : ${data.qr_found ? "Yes → " + (data.decoded_url || "") : "No"}`);
   if (data.total_modules_analyzed !== undefined)
     lines.push(`Modules     : ${data.total_modules_analyzed} analyzed`);
   if (data.final_decision)
@@ -114,11 +114,11 @@ async function analyzeEmail() {
   el.textContent = "Analyzing…"; el.classList.remove("hidden");
   try {
     const r = await fetch(`${API}/analyze/email`, {
-      method: "POST", headers: {"Content-Type":"application/json"},
+      method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ text }),
     });
     renderResult(el, await r.json());
-  } catch(e) { renderError(el, e); }
+  } catch (e) { renderError(el, e); }
 }
 
 // ─── URL ──────────────────────────────────────────────────────────────
@@ -131,11 +131,11 @@ async function analyzeURL() {
   const endpoint = apkMode ? "/analyze/url/apk-risk" : "/analyze/url";
   try {
     const r = await fetch(`${API}${endpoint}`, {
-      method: "POST", headers: {"Content-Type":"application/json"},
+      method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ url }),
     });
     renderResult(el, await r.json());
-  } catch(e) { renderError(el, e); }
+  } catch (e) { renderError(el, e); }
 }
 
 // ─── Chat ─────────────────────────────────────────────────────────────
@@ -146,27 +146,13 @@ async function analyzeChat() {
   el.textContent = "Analyzing…"; el.classList.remove("hidden");
   try {
     const r = await fetch(`${API}/analyze/chat`, {
-      method: "POST", headers: {"Content-Type":"application/json"},
+      method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ text }),
     });
     renderResult(el, await r.json());
-  } catch(e) { renderError(el, e); }
+  } catch (e) { renderError(el, e); }
 }
 
-// ─── Voice ────────────────────────────────────────────────────────────
-async function analyzeVoice() {
-  const transcript = document.getElementById("voice-input").value;
-  const el = document.getElementById("voice-result");
-  if (!transcript.trim()) return;
-  el.textContent = "Analyzing…"; el.classList.remove("hidden");
-  try {
-    const r = await fetch(`${API}/analyze/voice`, {
-      method: "POST", headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({ transcript }),
-    });
-    renderResult(el, await r.json());
-  } catch(e) { renderError(el, e); }
-}
 
 // ─── Image ────────────────────────────────────────────────────────────
 async function analyzeImage() {
@@ -178,30 +164,30 @@ async function analyzeImage() {
   const endpoint = qrMode ? "/analyze/qr" : "/analyze/image";
   try {
     const r = await fetch(`${API}${endpoint}`, {
-      method: "POST", headers: {"Content-Type":"application/json"},
+      method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ image_path }),
     });
     renderResult(el, await r.json());
-  } catch(e) { renderError(el, e); }
+  } catch (e) { renderError(el, e); }
 }
 
 // ─── Ensemble ─────────────────────────────────────────────────────────
 async function analyzeEnsemble() {
   const el = document.getElementById("ensemble-result");
-  el.textContent = "Running 5-channel ensemble…"; el.classList.remove("hidden");
+  el.textContent = "Running 4-channel ensemble…"; el.classList.remove("hidden");
   const body = {
-    email:            document.getElementById("ens-email").value || null,
-    url:              document.getElementById("ens-url").value || null,
-    chat:             document.getElementById("ens-chat").value || null,
-    voice_transcript: document.getElementById("ens-voice").value || null,
+    email: document.getElementById("ens-email").value || null,
+    url: document.getElementById("ens-url").value || null,
+    chat: document.getElementById("ens-chat").value || null,
+    image_path: document.getElementById("ens-image").value || null,
   };
   try {
     const r = await fetch(`${API}/analyze/ensemble`, {
-      method: "POST", headers: {"Content-Type":"application/json"},
+      method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
     renderResult(el, await r.json());
-  } catch(e) { renderError(el, e); }
+  } catch (e) { renderError(el, e); }
 }
 
 
@@ -220,7 +206,7 @@ async function loadDashboard() {
     renderCampaignList("campaign-list", campaigns.slice(0, 5));
     renderD3Timeline(campaigns);
     updateChannelBars(campaigns);
-  } catch(e) {
+  } catch (e) {
     console.warn("Dashboard load failed:", e);
   }
 }
@@ -235,7 +221,7 @@ async function loadCampaigns() {
     if (!r.ok) { el.innerHTML = "<p class='muted'>Database not connected yet.</p>"; return; }
     const data = await r.json();
     renderCampaignList("campaigns-detail", data.campaigns || []);
-  } catch(e) {
+  } catch (e) {
     el.innerHTML = `<p class='muted'>Error: ${e}</p>`;
   }
 }
@@ -245,12 +231,12 @@ function renderCampaignList(elId, campaigns) {
   if (!campaigns.length) { el.innerHTML = "<p class='muted'>No campaigns detected yet.</p>"; return; }
   el.innerHTML = campaigns.map(c => `
     <div class="campaign-item" onclick="fetchCampaignDetail('${c.id}')">
-      <div class="campaign-name">${c.name || c.id.slice(0,12)}</div>
+      <div class="campaign-name">${c.name || c.id.slice(0, 12)}</div>
       <div class="campaign-meta">
         First: ${new Date(c.first_seen).toLocaleDateString()} · Last: ${new Date(c.last_seen).toLocaleDateString()} · ${c.victim_count} IOCs
       </div>
       <div class="campaign-channels">
-        ${(c.channels||[]).map(ch=>`<span class="channel-tag">${ch}</span>`).join("")}
+        ${(c.channels || []).map(ch => `<span class="channel-tag">${ch}</span>`).join("")}
       </div>
     </div>
   `).join("");
@@ -272,21 +258,21 @@ async function fetchCampaignDetail(id) {
       <div class="campaign-name">${c.name}</div>
       <div class="campaign-meta">${evs.length} IOC events · First: ${new Date(c.first_seen).toLocaleDateString()}</div>
       <br/>
-      ${evs.slice(0,20).map(e=>`
+      ${evs.slice(0, 20).map(e => `
         <div class="campaign-item" style="cursor:default">
-          <div class="campaign-meta">[${e.channel}] ${e.threat_level} · ${(e.confidence*100).toFixed(0)}% · ${new Date(e.timestamp).toLocaleString()}</div>
-          <div class="campaign-channels">${(e.indicators||[]).slice(0,5).map(i=>`<span class="channel-tag">${i}</span>`).join("")}</div>
+          <div class="campaign-meta">[${e.channel}] ${e.threat_level} · ${(e.confidence * 100).toFixed(0)}% · ${new Date(e.timestamp).toLocaleString()}</div>
+          <div class="campaign-channels">${(e.indicators || []).slice(0, 5).map(i => `<span class="channel-tag">${i}</span>`).join("")}</div>
         </div>
       `).join("")}
     `;
-  } catch(e) { el.innerHTML = `<p class='muted'>Error: ${e}</p>`; }
+  } catch (e) { el.innerHTML = `<p class='muted'>Error: ${e}</p>`; }
 }
 
 
 // ─── Channel Bars ─────────────────────────────────────────────────────
 function updateChannelBars(campaigns) {
-  const counts = { email:0, url:0, chat:0, voice:0, image:0 };
-  campaigns.forEach(c => (c.channels||[]).forEach(ch => {
+  const counts = { email: 0, url: 0, chat: 0, image: 0 };
+  campaigns.forEach(c => (c.channels || []).forEach(ch => {
     if (ch in counts) counts[ch]++;
   }));
   const max = Math.max(...Object.values(counts), 1);

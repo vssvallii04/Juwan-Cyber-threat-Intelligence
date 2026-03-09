@@ -45,3 +45,8 @@ Thumbs.db
 .pytest_cache/
 htmlcov/
 .coverage
+
+data/*.csv
+data/*.npz
+
+data/

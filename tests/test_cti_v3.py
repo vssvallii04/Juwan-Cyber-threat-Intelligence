@@ -8,10 +8,10 @@ Coverage:
   - /analyze/chat (unchanged from v2, but re-verified)
   - /analyze/voice (transcript mode)
   - /analyze/image (ELA tamper path)
-  - /analyze/qr
-  - /analyze/ensemble (5-channel)
-  - /intelligence/campaigns
-  - Ensemble engine unit tests (5-channel weights)
+#   - /analyze/qr
+#   - /analyze/ensemble (4-channel)
+#   - /intelligence/campaigns
+#   - Ensemble engine unit tests (4-channel weights)
   - AI-origin heuristic unit tests
   - ELA tamper unit tests
 
@@ -46,15 +46,14 @@ class TestSystemEndpoints:
     def test_root_returns_operational(self):
         r = get("/")
         assert r.status_code == 200
-        assert r.json()["status"] == "operational"
-        assert r.json()["version"] == "3.0.0"
+        assert "text/html" in r.headers["content-type"]
 
     def test_health_lists_all_6_channels(self):
         r = get("/health")
         assert r.status_code == 200
         j = r.json()
         assert j["status"] == "healthy"
-        assert set(j["channels"]) == {"email", "url", "chat", "voice", "image", "ensemble"}
+        assert set(j["channels"]) == {"email", "url", "chat", "image", "ensemble"}
         assert j["database"] == "postgresql"
 
 
@@ -125,46 +124,7 @@ class TestURLAPKEndpoint:
         assert r.status_code == 422
 
 
-# ═══════════════════════════════════════════════════════════════
-# VOICE
-# ═══════════════════════════════════════════════════════════════
 
-class TestVoiceEndpoint:
-
-    def test_transcript_vishing_detected(self):
-        r = post("/analyze/voice", {
-            "transcript": "This is TRAI. Your mobile number will be disconnected. Share OTP to verify your KYC immediately."
-        })
-        assert r.status_code == 200
-        j = r.json()
-        assert j["prediction"] in ("vishing", "legitimate")
-        assert "transcript" in j
-        assert "indicators" in j
-
-    def test_legitimate_transcript(self):
-        r = post("/analyze/voice", {
-            "transcript": "Hi, calling to confirm your appointment tomorrow afternoon. No action needed."
-        })
-        assert r.status_code == 200
-        assert r.json()["confidence"] >= 0.0
-
-    def test_confidence_in_range(self):
-        r = post("/analyze/voice", {"transcript": "Send your bank account OTP now to avoid arrest."})
-        assert r.status_code == 200
-        assert 0.0 <= r.json()["confidence"] <= 1.0
-
-    def test_missing_both_inputs_rejected(self):
-        r = post("/analyze/voice", {})
-        assert r.status_code == 422
-
-    def test_transcript_too_short_rejected(self):
-        r = post("/analyze/voice", {"transcript": "hi"})
-        assert r.status_code == 422
-
-    def test_mitre_ttp_in_response(self):
-        r = post("/analyze/voice", {"transcript": "Call us back immediately. Your account is suspended."})
-        assert r.status_code == 200
-        assert r.json().get("mitre_ttp") == "T1598.004"
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -206,7 +166,7 @@ class TestImageEndpoint:
 
 
 # ═══════════════════════════════════════════════════════════════
-# ENSEMBLE — 5-channel
+# ENSEMBLE — 4-channel
 # ═══════════════════════════════════════════════════════════════
 
 class TestEnsembleV3:
@@ -224,19 +184,14 @@ class TestEnsembleV3:
         assert r.status_code == 200
         assert r.json()["total_modules_analyzed"] >= 1
 
-    def test_voice_only_transcript(self):
-        r = post("/analyze/ensemble", {
-            "voice_transcript": "Your TRAI number will be disconnected. Share OTP to verify."
-        })
-        assert r.status_code == 200
-        assert r.json()["confidence"] >= 0.0
 
-    def test_full_5_channel_scenario(self):
+
+    def test_full_4_channel_scenario(self):
         r = post("/analyze/ensemble", {
             "email": "Verify your PayPal account immediately or it will be suspended.",
             "url": "http://paypal-verify.evil.ru/login",
             "chat": "Send your OTP and bank account details urgently.",
-            "voice_transcript": "This is PayPal support. Your account is compromised. Share PIN now.",
+            "image_path": str(Path(__file__).parent.parent / "frontend" / "assets" / "favicon.svg")
         })
         assert r.status_code == 200
         j = r.json()
@@ -342,7 +297,7 @@ class TestELATamperUnit:
 
 
 # ═══════════════════════════════════════════════════════════════
-# ENSEMBLE UNIT TESTS — 5-channel weights
+# ENSEMBLE UNIT TESTS — 4-channel weights
 # ═══════════════════════════════════════════════════════════════
 
 class TestEnsembleV3Unit:
@@ -352,9 +307,9 @@ class TestEnsembleV3Unit:
         total = sum(WEIGHTS.values())
         assert abs(total - 1.0) < 0.01, f"Weights sum to {total}, expected ~1.0"
 
-    def test_all_5_channels_present(self):
+    def test_all_4_channels_present(self):
         from utils.ensemble import WEIGHTS
-        assert set(WEIGHTS.keys()) == {"email", "url", "chat", "voice", "image"}
+        assert set(WEIGHTS.keys()) == {"email", "url", "chat", "image"}
 
     def test_empty_input_returns_legitimate(self):
         from utils.ensemble import ensemble_decision
@@ -368,16 +323,19 @@ class TestEnsembleV3Unit:
             email={"prediction": "phishing", "confidence": 0.90},
             url={"prediction": "phishing", "confidence": 0.85},
             chat={"prediction": "scam", "confidence": 0.80},
-            voice={"prediction": "vishing", "confidence": 0.75},
             image={"prediction": "deepfake", "confidence": 0.70},
         )
         assert r["threat_level"] == "HIGH"
         assert r["final_decision"] == "phishing"
 
-    def test_voice_15pct_weight(self):
+    def test_email_40pct_weight(self):
         from utils.ensemble import WEIGHTS
-        assert abs(WEIGHTS["voice"] - 0.15) < 0.01
+        assert abs(WEIGHTS["email"] - 0.40) < 0.01
 
-    def test_image_10pct_weight(self):
+    def test_chat_20pct_weight(self):
         from utils.ensemble import WEIGHTS
-        assert abs(WEIGHTS["image"] - 0.10) < 0.01
+        assert abs(WEIGHTS["chat"] - 0.20) < 0.01
+
+    def test_image_15pct_weight(self):
+        from utils.ensemble import WEIGHTS
+        assert abs(WEIGHTS["image"] - 0.15) < 0.01

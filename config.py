@@ -59,12 +59,12 @@ class Settings:
     IMAGE_TAMPER_THRESHOLD: float = float(os.getenv("IMAGE_TAMPER_THRESHOLD", "0.55"))
     AI_ORIGIN_THRESHOLD: float = float(os.getenv("AI_ORIGIN_THRESHOLD", "0.65"))
 
-    # ── Ensemble Weights ───────────────────────────────────────────
-    WEIGHT_EMAIL: float = float(os.getenv("WEIGHT_EMAIL", "0.35"))
+    # ── Ensemble Weights (4-channel) ───────────────────────────────
+    WEIGHT_EMAIL: float = float(os.getenv("WEIGHT_EMAIL", "0.40"))
     WEIGHT_URL: float = float(os.getenv("WEIGHT_URL", "0.25"))
-    WEIGHT_CHAT: float = float(os.getenv("WEIGHT_CHAT", "0.15"))
-    WEIGHT_VOICE: float = float(os.getenv("WEIGHT_VOICE", "0.15"))
-    WEIGHT_IMAGE: float = float(os.getenv("WEIGHT_IMAGE", "0.10"))
+    WEIGHT_CHAT: float = float(os.getenv("WEIGHT_CHAT", "0.20"))
+    WEIGHT_IMAGE: float = float(os.getenv("WEIGHT_IMAGE", "0.15"))
+
 
     # ── Threat Level Thresholds ────────────────────────────────────
     THREAT_HIGH_SCORE: float = float(os.getenv("THREAT_HIGH_SCORE", "0.60"))
