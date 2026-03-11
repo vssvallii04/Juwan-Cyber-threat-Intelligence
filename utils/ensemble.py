@@ -8,12 +8,14 @@ from logger import get_logger
 
 logger = get_logger(__name__)
 
-# ── Channel weights (Voice channel removed — redistributed to email/chat) ────
+# ── Channel weights (6-Channel Engine: Email, URL, Chat, Image, File, PCAP) ────
 WEIGHTS = {
-    "email": 0.40,
-    "url":   0.25,
-    "chat":  0.20,
+    "email": 0.30,
+    "url":   0.20,
+    "chat":  0.15,
     "image": 0.15,
+    "file":  0.10,
+    "pcap":  0.10,
 }
 
 # Threat thresholds (loaded from config)
@@ -28,6 +30,8 @@ def ensemble_decision(
     url: dict = None,
     chat: dict = None,
     image: dict = None,
+    file: dict = None,
+    pcap: dict = None,
 ) -> dict:
     """
     Combine results from up to 4 detection channels using configured weights.
@@ -55,6 +59,8 @@ def ensemble_decision(
         "url":   (url,   "Suspicious URL structure or APK delivery detected"),
         "chat":  (chat,  "Conversation intent appears malicious"),
         "image": (image, "Image shows deepfake or tamper evidence"),
+        "file":  (file,  "Executable file contains suspicious signatures or metadata"),
+        "pcap":  (pcap,  "Network traffic contains C2 beacons, DGA, or malicious IPs"),
     }
 
     THREAT_LABELS = {
@@ -62,6 +68,8 @@ def ensemble_decision(
         "url":   "phishing",
         "chat":  "scam",
         "image": "deepfake",
+        "file":  "malware",
+        "pcap":  "c2_traffic",
     }
 
     for channel, (result, default_reason) in channel_inputs.items():

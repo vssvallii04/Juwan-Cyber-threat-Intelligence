@@ -42,6 +42,15 @@
       <a class="nav-item" data-panel="image">
         <span class="nav-icon">🖼</span> Image / QR
       </a>
+      <a class="nav-item" data-panel="file">
+        <span class="nav-icon">📄</span> File
+      </a>
+      <a class="nav-item" data-panel="infrastructure">
+        <span class="nav-icon">🌍</span> Infrastructure
+      </a>
+      <a class="nav-item" data-panel="pcap">
+        <span class="nav-icon">📊</span> Network (PCAP)
+      </a>
       <a class="nav-item" data-panel="ensemble">
         <span class="nav-icon">⊕</span> Ensemble
       </a>
@@ -136,6 +145,20 @@
               </div>
               <span id="pct-image">0%</span>
             </div>
+            <div class="channel-bar-row">
+              <span>File</span>
+              <div class="bar-track">
+                <div class="bar bar-file" id="bar-file" style="width:0%"></div>
+              </div>
+              <span id="pct-file">0%</span>
+            </div>
+            <div class="channel-bar-row">
+              <span>PCAP</span>
+              <div class="bar-track">
+                <div class="bar bar-pcap" id="bar-pcap" style="width:0%"></div>
+              </div>
+              <span id="pct-pcap">0%</span>
+            </div>
           </div>
         </div>
 
@@ -205,6 +228,42 @@
         <button class="btn" onclick="analyzeImage()">Analyze Image</button>
       </div>
       <div id="image-result" class="result-box hidden"></div>
+    </section>
+
+    <!-- ═══ FILE PANEL ═══ -->
+    <section id="panel-file" class="panel">
+      <div class="card">
+        <div class="card-header"><span>Static Malware Analysis (PE & YARA)</span></div>
+        <input id="file-input" class="input-field" placeholder="Absolute path to file (e.g., C:\malware.exe)" />
+        <button class="btn" onclick="analyzeFile()">Analyze File</button>
+      </div>
+      <div id="file-result" class="result-box hidden"></div>
+    </section>
+
+    <!-- ═══ INFRASTRUCTURE PANEL ═══ -->
+    <section id="panel-infrastructure" class="panel">
+      <div class="card">
+        <div class="card-header">
+          <span>Infrastructure OSINT & Reputation</span>
+          <span class="tag">ASN / DNS / IPWhois</span>
+        </div>
+        <input id="infra-input" class="input-field" placeholder="Enter IP Address or Domain Name (e.g. 8.8.8.8 or badguy.com)" />
+        <button class="btn" onclick="analyzeInfrastructure()">Lookup Reputation</button>
+      </div>
+      <div id="infra-result" class="result-box hidden"></div>
+    </section>
+
+    <!-- ═══ PCAP PANEL ═══ -->
+    <section id="panel-pcap" class="panel">
+      <div class="card">
+        <div class="card-header">
+          <span>Network Traffic Forensics</span>
+          <span class="tag">Scapy</span>
+        </div>
+        <input id="pcap-input" class="input-field" placeholder="Absolute path to .pcap capture file" />
+        <button class="btn" onclick="analyzePCAP()">Analyze PCAP</button>
+      </div>
+      <div id="pcap-result" class="result-box hidden"></div>
     </section>
 
     <!-- ═══ ENSEMBLE PANEL ═══ -->

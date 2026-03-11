@@ -85,11 +85,19 @@ class ImageRequest(BaseModel):
 class QRRequest(BaseModel):
     image_path: str
 
+class FileRequest(BaseModel):
+    file_path: str
+
+class PCAPRequest(BaseModel):
+    pcap_path: str
+
 class EnsembleRequest(BaseModel):
     email:  Optional[str] = None
     url:    Optional[str] = None
     chat:   Optional[str] = None
     image_path: Optional[str] = None
+    file_path: Optional[str] = None
+    pcap_path: Optional[str] = None
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -435,9 +443,9 @@ def analyze_qr(req: QRRequest):
 
 @app.post("/analyze/ensemble", tags=["Detection"], status_code=status.HTTP_200_OK)
 def analyze_ensemble(req: EnsembleRequest):
-    """4-channel combined threat assessment: email · url · chat · image."""
+    """6-channel combined threat assessment: email, url, chat, image, file, pcap."""
     try:
-        if not any([req.email, req.url, req.chat, req.image_path]):
+        if not any([req.email, req.url, req.chat, req.image_path, req.file_path, req.pcap_path]):
             raise ValidationError("Provide at least one input channel")
 
         logger.info("Ensemble analysis started")
@@ -492,9 +500,32 @@ def analyze_ensemble(req: EnsembleRequest):
             except Exception as e:
                 logger.warning(f"Ensemble image failed: {e}")
 
+        file_result = None
+        if req.file_path and req.file_path.strip():
+            try:
+                from models.malware_analyzer import analyze_malware
+                file_result = analyze_malware(req.file_path)
+                # Keep schema aligned with ensemble logic: dict with prediction and confidence
+                file_result["prediction"] = file_result.get("threat_level", "LOW").lower()
+                if file_result["prediction"] == "low": file_result["prediction"] = "clean"
+                if file_result["prediction"] == "high": file_result["prediction"] = "malware"
+            except Exception as e:
+                logger.warning(f"Ensemble file failed: {e}")
+
+        pcap_result = None
+        if req.pcap_path and req.pcap_path.strip():
+            try:
+                from models.pcap_analyzer import analyze_pcap
+                pcap_result = analyze_pcap(req.pcap_path)
+                pcap_result["prediction"] = pcap_result.get("threat_level", "LOW").lower()
+                if pcap_result["prediction"] == "low": pcap_result["prediction"] = "clean"
+                if pcap_result["prediction"] == "high": pcap_result["prediction"] = "c2_traffic"
+            except Exception as e:
+                logger.warning(f"Ensemble pcap failed: {e}")
+
         decision = ensemble_decision(
             email=email_result, url=url_result, chat=chat_result,
-            image=image_result,
+            image=image_result, file=file_result, pcap=pcap_result
         )
 
         artifact_id = str(uuid.uuid4())
@@ -509,7 +540,7 @@ def analyze_ensemble(req: EnsembleRequest):
             **decision,
             "channel_results": {
                 "email": email_result, "url": url_result, "chat": chat_result,
-                "image": image_result,
+                "image": image_result, "file": file_result, "pcap": pcap_result
             },
         }
 
@@ -525,6 +556,128 @@ def analyze_ensemble(req: EnsembleRequest):
         logger.error(f"Ensemble error: {e}", exc_info=True)
         raise ProcessingError(str(e), module="ensemble")
 
+
+# ═════════════════════════════════════════════════════════════════════
+# FILE — Static Malware Analysis
+# ═════════════════════════════════════════════════════════════════════
+
+@app.post("/analyze/file", tags=["Detection v4"], status_code=status.HTTP_200_OK)
+def analyze_dropped_file(req: FileRequest):
+    """Static malware analysis (PE extraction, Hashing, YARA scanning)."""
+    try:
+        from models.malware_analyzer import analyze_file
+        
+        file_path = req.file_path
+        if not file_path or not os.path.exists(file_path):
+            raise ValidationError("Invalid or non-existent file path provided.")
+            
+        logger.info(f"Analyzing file: {file_path}")
+        report = analyze_file(file_path)
+        
+        if "error" in report:
+            raise ProcessingError(f"File analysis error: {report['error']}", module="file")
+            
+        artifact_id = str(uuid.uuid4())
+        
+        indicators = [m["rule"] for m in report.get("yara_matches", [])]
+        if report.get("pe_analysis"):
+            indicators.extend(report["pe_analysis"].get("suspicious_indicators", []))
+            
+        _log_ioc(artifact_id, "file", report.get("confidence", 0.0), report.get("threat_level", "LOW"),
+                 indicators, {"hash": report["hashes"]["sha256"]}, file_path)
+            
+        return {
+            "status": "success",
+            "artifact_id": artifact_id,
+            "module": "file_malware",
+            "prediction": report.get("threat_level", "LOW").lower(),
+            "confidence": report.get("confidence", 0.0),
+            "threat_level": report.get("threat_level", "LOW"),
+            "results": report
+        }
+    except ValidationError as e:
+        raise e
+    except Exception as e:
+        logger.error(f"File endpoint failed: {e}")
+        raise ProcessingError(str(e), module="file")
+
+
+# ═════════════════════════════════════════════════════════════════════
+# PCAP — Network Traffic Analysis
+# ═════════════════════════════════════════════════════════════════════
+
+@app.post("/analyze/pcap", tags=["Detection v4"], status_code=status.HTTP_200_OK)
+def analyze_network_pcap(req: PCAPRequest):
+    """Network forensics: Parse PCAP for C2 beacons, DGAs, and suspicious IPs."""
+    try:
+        from models.pcap_analyzer import analyze_pcap
+        
+        pcap_path = req.pcap_path
+        if not pcap_path or not os.path.exists(pcap_path):
+            raise ValidationError("Invalid or non-existent PCAP file path provided.")
+            
+        logger.info(f"Analyzing PCAP: {pcap_path}")
+        report = analyze_pcap(pcap_path)
+        
+        if "error" in report:
+            raise ProcessingError(f"PCAP analysis error: {report['error']}", module="pcap")
+            
+        artifact_id = str(uuid.uuid4())
+        
+        # Log IOC on malicious traffic
+        indicators = report.get("http_hosts", []) + report.get("suspicious_indicators", [])
+        if report.get("confidence", 0.0) >= settings.THREAT_MEDIUM_SCORE:
+            _log_ioc(artifact_id, "pcap", report.get("confidence", 0.0), report.get("threat_level", "LOW"),
+                     indicators, {"dns_count": len(report.get("dns_queries", []))}, pcap_path)
+            
+        return {
+            "status": "success",
+            "artifact_id": artifact_id,
+            "module": "pcap",
+            "prediction": report.get("threat_level", "LOW").lower(),
+            "confidence": report.get("confidence", 0.0),
+            "threat_level": report.get("threat_level", "LOW"),
+            "results": report
+        }
+    except ValidationError as e:
+        raise e
+    except Exception as e:
+        logger.error(f"PCAP endpoint failed: {e}")
+        raise ProcessingError(str(e), module="pcap")
+
+
+# ═════════════════════════════════════════════════════════════════════
+# INFRASTRUCTURE — OSINT & Reputation Analysis
+# ═════════════════════════════════════════════════════════════════════
+
+@app.get("/analyze/infrastructure/{query:path}", tags=["Detection v4"], status_code=status.HTTP_200_OK)
+def analyze_infrastructure_query(query: str):
+    """Performs ASN, GeoIP, and DNS lookups on a domain or IP."""
+    try:
+        from models.infrastructure_intel import analyze_infrastructure
+        
+        if not query:
+            raise ValidationError("Infrastructure query cannot be empty.")
+            
+        logger.info(f"Analyzing infrastructure: {query}")
+        report = analyze_infrastructure(query)
+        
+        if "error" in report:
+            raise ProcessingError(f"Infrastructure lookup error: {report['error']}", module="infrastructure")
+            
+        return {
+            "status": "success",
+            "module": "infrastructure",
+            "prediction": report.get("risk_level", "LOW").lower(),
+            "confidence": report.get("risk_score", 0.0),
+            "threat_level": report.get("risk_level", "LOW"),
+            "results": report
+        }
+    except ValidationError as e:
+        raise e
+    except Exception as e:
+        logger.error(f"Infrastructure endpoint failed: {e}")
+        raise ProcessingError(str(e), module="infrastructure")
 
 # ═════════════════════════════════════════════════════════════════════
 # INTELLIGENCE / CAMPAIGNS

@@ -264,6 +264,7 @@ body::after {
   letter-spacing: -0.5px;
   background: linear-gradient(90deg, #fff, #94a3b8);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
@@ -752,6 +753,16 @@ input:checked+.slider:before {
 .bar-image {
   background: linear-gradient(90deg, #f59e0b, #fbbf24);
   box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+}
+
+.bar-file {
+  background: linear-gradient(90deg, #ec4899, #f472b6);
+  box-shadow: 0 0 10px rgba(236, 72, 153, 0.5);
+}
+
+.bar-pcap {
+  background: linear-gradient(90deg, #10b981, #34d399); /* Emerald Green */
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
 }
 
 /* ── CAMPAIGN LIST ── */

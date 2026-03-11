@@ -171,6 +171,48 @@ async function analyzeImage() {
   } catch (e) { renderError(el, e); }
 }
 
+// ─── File ────────────────────────────────────────────────────────────
+async function analyzeFile() {
+  const file_path = document.getElementById("file-input").value;
+  const el = document.getElementById("file-result");
+  if (!file_path.trim()) return;
+  el.textContent = "Analyzing…"; el.classList.remove("hidden");
+  try {
+    const r = await fetch(`${API}/analyze/file`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ file_path }),
+    });
+    renderResult(el, await r.json());
+  } catch (e) { renderError(el, e); }
+}
+
+// ─── Infrastructure ──────────────────────────────────────────────────
+async function analyzeInfrastructure() {
+  const query = document.getElementById("infra-input").value;
+  const el = document.getElementById("infra-result");
+  if (!query.trim()) return;
+  el.textContent = "Querying DNS and ASN records…"; el.classList.remove("hidden");
+  try {
+    const r = await fetch(`${API}/analyze/infrastructure/${encodeURIComponent(query)}`);
+    renderResult(el, await r.json());
+  } catch (e) { renderError(el, e); }
+}
+
+// ─── PCAP ────────────────────────────────────────────────────────────
+async function analyzePCAP() {
+  const pcap_path = document.getElementById("pcap-input").value;
+  const el = document.getElementById("pcap-result");
+  if (!pcap_path.trim()) return;
+  el.textContent = "Analyzing Network Packets (scapy)…"; el.classList.remove("hidden");
+  try {
+    const r = await fetch(`${API}/analyze/pcap`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ pcap_path }),
+    });
+    renderResult(el, await r.json());
+  } catch (e) { renderError(el, e); }
+}
+
 // ─── Ensemble ─────────────────────────────────────────────────────────
 async function analyzeEnsemble() {
   const el = document.getElementById("ensemble-result");
@@ -271,7 +313,7 @@ async function fetchCampaignDetail(id) {
 
 // ─── Channel Bars ─────────────────────────────────────────────────────
 function updateChannelBars(campaigns) {
-  const counts = { email: 0, url: 0, chat: 0, image: 0 };
+  const counts = { email: 0, url: 0, chat: 0, image: 0, file: 0, pcap: 0 };
   campaigns.forEach(c => (c.channels || []).forEach(ch => {
     if (ch in counts) counts[ch]++;
   }));

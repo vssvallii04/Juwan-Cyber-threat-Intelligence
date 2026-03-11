@@ -188,12 +188,21 @@ try:
             "task": "intelligence.campaign_clusterer.run_clustering_task",
             "schedule": settings.CAMPAIGN_CLUSTER_INTERVAL,  # seconds
         },
+        "scrape-osint-feeds": {
+            "task": "intelligence.campaign_clusterer.run_osint_scraper_task",
+            "schedule": 900.0, # Run every 15 minutes (900 seconds)
+        }
     }
     celery_app.conf.timezone = "UTC"
 
     @celery_app.task(name="intelligence.campaign_clusterer.run_clustering_task")
     def run_clustering_task():
         run_campaign_clustering()
+        
+    @celery_app.task(name="intelligence.campaign_clusterer.run_osint_scraper_task")
+    def run_osint_scraper_task():
+        from intelligence.osint_scraper import run_osint_pipeline
+        run_osint_pipeline()
 
 except ImportError:
     logger.debug("Celery not installed — campaign clustering runs manually only")
