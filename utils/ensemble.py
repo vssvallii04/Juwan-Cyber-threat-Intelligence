@@ -113,7 +113,12 @@ def ensemble_decision(
     else:
         threat_level = "LOW"
 
-    final_decision = "phishing" if final_score >= 0.50 else "legitimate"
+    # ── Final Decision ───────────────────────────────────────────────
+    # If threat_level is HIGH/MEDIUM, it must be flagged as phishing
+    if threat_level in ("HIGH", "MEDIUM"):
+        final_decision = "phishing"
+    else:
+        final_decision = "phishing" if final_score >= 0.50 else "legitimate"
 
     return {
         "final_decision":        final_decision,

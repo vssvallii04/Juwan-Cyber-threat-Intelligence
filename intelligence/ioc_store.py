@@ -167,3 +167,32 @@ def update_event_campaign(event_id: str, campaign_id: str) -> bool:
     except Exception as e:
         logger.warning(f"update_event_campaign failed: {e}")
         return False
+
+
+def get_global_stats() -> dict:
+    """Calculate aggregate stats for the dashboard."""
+    try:
+        from sqlalchemy import func
+        with get_session() as session:
+            total = session.query(func.count(IOCEvent.id)).scalar() or 0
+            high = session.query(func.count(IOCEvent.id)).filter(IOCEvent.threat_level == "HIGH").scalar() or 0
+            medium = session.query(func.count(IOCEvent.id)).filter(IOCEvent.threat_level == "MEDIUM").scalar() or 0
+            campaigns = session.query(func.count(Campaign.id)).scalar() or 0
+            
+            # Channel breakdown
+            channel_counts = session.query(IOCEvent.channel, func.count(IOCEvent.id)).group_by(IOCEvent.channel).all()
+            channels = {c: n for c, n in channel_counts}
+            
+            return {
+                "total_analyses": total,
+                "high_threats": high,
+                "medium_threats": medium,
+                "active_campaigns": campaigns,
+                "channels": channels
+            }
+    except Exception as e:
+        logger.warning(f"get_global_stats failed: {e}")
+        return {
+            "total_analyses": 0, "high_threats": 0, "medium_threats": 0,
+            "active_campaigns": 0, "channels": {}
+        }

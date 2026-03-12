@@ -269,23 +269,31 @@
     <!-- ═══ ENSEMBLE PANEL ═══ -->
     <section id="panel-ensemble" class="panel">
       <div class="card">
-        <div class="card-header"><span>4-Channel Ensemble Threat Assessment</span></div>
+        <div class="card-header"><span>6-Channel Ensemble Threat Assessment</span></div>
         <div class="ensemble-grid">
           <div>
-            <label>Email <span class="weight-badge">40%</span></label>
-            <textarea id="ens-email" class="input-area sm" placeholder="Email body…" rows="3"></textarea>
+            <label>Email <span class="weight-badge">30%</span></label>
+            <textarea id="ens-email" class="input-area sm" placeholder="Email body…" rows="2"></textarea>
           </div>
           <div>
-            <label>URL <span class="weight-badge">25%</span></label>
+            <label>URL <span class="weight-badge">20%</span></label>
             <input id="ens-url" class="input-field" placeholder="https://…" />
           </div>
           <div>
-            <label>Chat <span class="weight-badge">20%</span></label>
-            <textarea id="ens-chat" class="input-area sm" placeholder="Chat message…" rows="3"></textarea>
+            <label>Chat <span class="weight-badge">15%</span></label>
+            <textarea id="ens-chat" class="input-area sm" placeholder="Chat message…" rows="2"></textarea>
           </div>
           <div>
             <label>Image <span class="weight-badge">15%</span></label>
             <input id="ens-image" class="input-field" placeholder="Path to image..." />
+          </div>
+          <div>
+            <label>File <span class="weight-badge">10%</span></label>
+            <input id="ens-file" class="input-field" placeholder="Path to .exe/.dll..." />
+          </div>
+          <div>
+            <label>PCAP <span class="weight-badge">10%</span></label>
+            <input id="ens-pcap" class="input-field" placeholder="Path to .pcap..." />
           </div>
         </div>
         <button class="btn" onclick="analyzeEnsemble()">Run Ensemble Analysis</button>

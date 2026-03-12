@@ -222,6 +222,8 @@ async function analyzeEnsemble() {
     url: document.getElementById("ens-url").value || null,
     chat: document.getElementById("ens-chat").value || null,
     image_path: document.getElementById("ens-image").value || null,
+    file_path: document.getElementById("ens-file").value || null,
+    pcap_path: document.getElementById("ens-pcap").value || null,
   };
   try {
     const r = await fetch(`${API}/analyze/ensemble`, {
@@ -236,18 +238,26 @@ async function analyzeEnsemble() {
 // ─── Dashboard ────────────────────────────────────────────────────────
 async function loadDashboard() {
   try {
-    const r = await fetch(`${API}/intelligence/campaigns`);
-    if (!r.ok) return;
-    const data = await r.json();
-    const campaigns = data.campaigns || [];
-    document.getElementById("val-campaigns").textContent = campaigns.length;
-    document.getElementById("val-total").textContent = "—";
-    document.getElementById("val-high").textContent = "—";
-    document.getElementById("val-medium").textContent = "—";
+    const [campaignsRes, statsRes] = await Promise.all([
+      fetch(`${API}/intelligence/campaigns`),
+      fetch(`${API}/intelligence/stats`)
+    ]);
 
-    renderCampaignList("campaign-list", campaigns.slice(0, 5));
-    renderD3Timeline(campaigns);
-    updateChannelBars(campaigns);
+    if (campaignsRes.ok) {
+      const data = await campaignsRes.json();
+      const campaigns = data.campaigns || [];
+      document.getElementById("val-campaigns").textContent = campaigns.length;
+      renderCampaignList("campaign-list", campaigns.slice(0, 5));
+      renderD3Timeline(campaigns);
+    }
+
+    if (statsRes.ok) {
+      const { stats } = await statsRes.json();
+      document.getElementById("val-total").textContent = stats.total_analyses || 0;
+      document.getElementById("val-high").textContent = stats.high_threats || 0;
+      document.getElementById("val-medium").textContent = stats.medium_threats || 0;
+      updateChannelBars(stats.channels || {});
+    }
   } catch (e) {
     console.warn("Dashboard load failed:", e);
   }
@@ -312,13 +322,11 @@ async function fetchCampaignDetail(id) {
 
 
 // ─── Channel Bars ─────────────────────────────────────────────────────
-function updateChannelBars(campaigns) {
-  const counts = { email: 0, url: 0, chat: 0, image: 0, file: 0, pcap: 0 };
-  campaigns.forEach(c => (c.channels || []).forEach(ch => {
-    if (ch in counts) counts[ch]++;
-  }));
+function updateChannelBars(counts) {
+  const chs = ["email", "url", "chat", "image", "file", "pcap"];
   const max = Math.max(...Object.values(counts), 1);
-  Object.entries(counts).forEach(([ch, n]) => {
+  chs.forEach(ch => {
+    const n = counts[ch] || 0;
     const pct = Math.round(n / max * 100);
     const bar = document.getElementById(`bar-${ch}`);
     const lbl = document.getElementById(`pct-${ch}`);

@@ -711,6 +711,19 @@ def list_campaigns(limit: int = 20, offset: int = 0):
         raise ProcessingError(str(e), module="campaigns")
 
 
+@app.get("/intelligence/stats", tags=["Intelligence"])
+def get_stats():
+    """Get global platform statistics."""
+    try:
+        from intelligence.ioc_store import get_global_stats
+        return {
+            "status": "success",
+            "stats": get_global_stats()
+        }
+    except Exception as e:
+        raise ProcessingError(str(e), module="stats")
+
+
 @app.get("/intelligence/campaigns/{campaign_id}", tags=["Intelligence"])
 def get_campaign(campaign_id: str):
     """Get campaign detail with member IOC events."""
