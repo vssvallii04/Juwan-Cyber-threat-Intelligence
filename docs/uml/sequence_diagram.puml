@@ -1,0 +1,56 @@
+@startuml Sequence Diagram
+title Juwan CTI v3.0 - Threat Analysis Sequence
+
+box "Presentation" #LightBlue
+  participant Dashboard
+end box
+
+box "Application Logic" #LightGreen
+  participant "FastAPI (app.py)" as API
+  participant "Ensemble (ensemble.py)" as Ensemble
+end box
+
+box "Detection Models" #Lavender
+  participant "Email/Chat AI" as AI
+  participant "Malware PE/YARA" as File
+  participant "PCAP Scapy" as Traffic
+end box
+
+box "Persistence & Intel" #LightGray
+  participant "PostgreSQL (IOCStore)" as DB
+  participant "Celery (Clusterer)" as Worker
+end box
+
+== Phase 1: Data Submission ==
+Dashboard -> API: POST /analyze/ensemble
+API -> API: Validate Pydantic Schema
+
+== Phase 2: Ensemble Dispatch ==
+API -> Ensemble: get_decision(payload)
+par Parallel Module Analysis
+    Ensemble -> AI: analyze_text()
+    Ensemble -> File: static_analyze()
+    Ensemble -> Traffic: parse_pcap()
+end
+
+== Phase 3: Result Aggregation ==
+AI -->> Ensemble: Phishing Prob (XGBoost)
+File -->> Ensemble: Malware Prob (YARA)
+Traffic -->> Ensemble: Anomaly Score (Scapy)
+
+Ensemble -> Ensemble: Apply Weighted Formula\n(Threat Level Normalization)
+
+== Phase 4: Forensic Logging ==
+Ensemble -> DB: add_ioc_event(results)
+DB -->> Ensemble: event_id
+
+== Phase 5: Campaign Correlation (Async) ==
+Worker -> DB: query_new_events()
+Worker -> Worker: LSH MinHash Clustering
+Worker -> DB: create_campaign_link()
+
+== Phase 6: Result Visualization ==
+Ensemble -->> API: Final Score + Indicator List
+API -->> Dashboard: 200 OK (Phishing / HIGH)
+Dashboard -> Dashboard: Render Glassmorphism Alert
+@enduml

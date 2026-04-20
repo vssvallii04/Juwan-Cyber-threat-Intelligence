@@ -316,7 +316,10 @@ def analyze_chat(req: ChatRequest):
         }
         matched = {kw: w for kw, w in SCAM_KEYWORDS.items() if kw in text_lower}
         score = sum(matched.values())
-        confidence = round(min(score, 1.0), 4)
+        # Tanh normalization: smooth curve prevents hard saturation at 1.0.
+        # Raw score of 0.5 → conf ~0.46, 1.0 → ~0.76, 1.5 → ~0.90, 2.0 → ~0.96
+        import math
+        confidence = round(math.tanh(score * 0.85), 4)
         prediction = "scam" if confidence >= settings.CHAT_THRESHOLD else "normal"
 
         artifact_id = str(uuid.uuid4())
@@ -503,8 +506,8 @@ def analyze_ensemble(req: EnsembleRequest):
         file_result = None
         if req.file_path and req.file_path.strip():
             try:
-                from models.malware_analyzer import analyze_malware
-                file_result = analyze_malware(req.file_path)
+                from models.malware_analyzer import analyze_file
+                file_result = analyze_file(req.file_path)
                 # Keep schema aligned with ensemble logic: dict with prediction and confidence
                 file_result["prediction"] = file_result.get("threat_level", "LOW").lower()
                 if file_result["prediction"] == "low": file_result["prediction"] = "clean"

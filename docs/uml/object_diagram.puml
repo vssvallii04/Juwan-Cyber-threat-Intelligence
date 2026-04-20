@@ -1,0 +1,46 @@
+@startuml Object Diagram
+title Juwan CTI v3.0 - Simplified Object Diagram (Basic)
+
+object "case1: ThreatCase" as case1 {
+  caseID = "CASE-2026-003"
+  status = "Active"
+  createdDate = "2026-03-12T11:00:00Z"
+  investigatorID = "USR-001"
+}
+
+object "investigator1: User" as user1 {
+  userID = "USR-001"
+  role = "Lead Investigator"
+  name = "Juwan Admin"
+}
+
+object "evidence1: Evidence" as ev1 {
+  evidenceID = "EV-2026-01"
+  type = "Multi-modal (Email+URL)"
+  source = "malicious-gateway.xyz"
+  hash = "ef92b1..."
+  status = "Pending Analysis"
+}
+
+object "ensemble: EnsembleEngine" as ens {
+  activeChannels = 6
+  weightsSet = "Phishing-Default"
+}
+
+object "result1: ThreatResult" as res1 {
+  classification = "Phishing"
+  confidence = 0.92
+  severity = "HIGH"
+}
+
+object "db1: Database" as db1 {
+  type = "PostgreSQL"
+  encrypted = true
+}
+
+case1 "1" *-- "1" user1 : "managed by"
+case1 "1" *-- "many" ev1 : "contains"
+ev1 ..> ens : "analyzed by"
+ens ..> res1 : "produces"
+res1 ..> db1 : "logged to"
+@enduml

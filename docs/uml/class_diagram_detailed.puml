@@ -1,0 +1,64 @@
+@startuml Detailed Class Diagram
+title Juwan CTI v3.0 - Detailed System Specifications
+
+class FastAPI_App {
+  +PORT: 8000
+  +POST /analyze/ensemble()
+  +POST /analyze/file()
+  +GET /intelligence/stats()
+}
+
+class EnsembleEngine {
+  +EMAIL_WEIGHT: 0.30
+  +URL_WEIGHT: 0.20
+  +CHAT_WEIGHT: 0.15
+  +IMAGE_WEIGHT: 0.15
+  +FILE_WEIGHT: 0.10
+  +PCAP_WEIGHT: 0.10
+  +calculate_weighted_score()
+  +determine_final_decision()
+}
+
+class MalwareFileAnalyzer {
+  +hashes: list
+  +yara_rules: list
+  +analyze_pe_structure()
+  +extract_strings()
+  +run_yara_match()
+}
+
+class PCAPAnalyzer {
+  +protocols: list
+  +extract_dns_queries()
+  +detect_beaconing()
+  +map_http_flows()
+}
+
+class AIChatModel {
+  +tokenizer: str
+  +model_type: str
+  +perplexity_threshold: float
+  +compute_perplexity()
+}
+
+class IOCStore {
+  +engine: SQLAlchemy
+  +session: Session
+  +add_event(event: IOCEvent)
+  +query_campaigns()
+}
+
+class CampaignClusterer {
+  +minhash_threshold: 0.5
+  +lsh_index: list
+  +perform_clustering()
+  +create_stix_bundle()
+}
+
+EnsembleEngine --> MalwareFileAnalyzer : "uses"
+EnsembleEngine --> PCAPAnalyzer : "uses"
+EnsembleEngine --> AIChatModel : "uses"
+FastAPI_App --> EnsembleEngine : "calls"
+EnsembleEngine --> IOCStore : "logs to"
+CampaignClusterer --> IOCStore : "reads/updates"
+@enduml

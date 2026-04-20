@@ -1,0 +1,49 @@
+@startuml Collaboration Diagram
+title Juwan CTI v3.0 - Object Collaboration Flow
+
+' Layout Spacing
+skinparam ranksep 80
+skinparam nodesep 100
+skinparam shadowing false
+skinparam packageStyle rectangle
+
+actor "Security Analyst" as User
+rectangle "Dashboard UI" as UI #LightBlue
+rectangle "Ensemble Engine" as Router #LightGreen
+
+package "Detection Logic" #Lavender {
+    rectangle "EmailAnalyzer" as Email
+    rectangle "URLAnalyzer" as URL
+    rectangle "MalwareAnalyzer" as Malware
+    rectangle "PCAPAnalyzer" as PCAP
+}
+
+database "PostgreSQL" as DB #LightGray
+rectangle "CampaignClusterer" as Clusterer #PeachPuff
+
+' Sequential Connections
+User -down-> UI : "1. Submit Payload"
+note left: Analyst provides inputs
+
+UI -down-> Router : "2. Analyze"
+note right: Dispatch all channels
+
+Router -down-> Email : "3a"
+Router -down-> URL : "3b"
+Router -down-> Malware : "3c"
+Router -down-> PCAP : "3d"
+
+Email -up-> Router : "4a"
+URL -up-> Router : "4b"
+Malware -up-> Router : "4c"
+PCAP -up-> Router : "4d"
+
+Router -right-> DB : "5. Log Event"
+note top: Persist Result
+
+DB -down-> Clusterer : "6. Fetch"
+Clusterer -up-> DB : "7. Link"
+
+Router -up-> UI : "8. Response"
+UI -up-> User : "9. Notification"
+@enduml

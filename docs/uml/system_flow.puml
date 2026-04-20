@@ -1,0 +1,56 @@
+@startuml System Operational Flow
+title Juwan CTI v3.0 - System Operational Flow (Activity Diagram)
+
+start
+
+:Analyst Submits Multi-modal Input;
+note right: Email Text, URL, File, or PCAP
+
+if (Input Valid?) then (yes)
+  fork
+    :Email Analysis;
+    :Stylometrics + AI Origin;
+  fork again
+    :URL Analysis;
+    :Domain Risk + APK Scan;
+  fork again
+    :Malware File Scan;
+    :Extraction + YARA Match;
+  fork again
+    :PCAP Traffic Forensic;
+    :Scapy/Network Analysis;
+  fork again
+    :Image Analysis;
+    :ELA + Deepfake Detect;
+  fork again
+    :Chat Analysis;
+    :Phishing Pattern Match;
+  end fork
+
+  :Ensemble Aggregation;
+  note left: Weighted average calculation
+
+  :Threat Level Normalization;
+  if (Threat Score > Threshold?) then (HIGH/MEDIUM)
+    :Flag as PHISHING;
+  else (LOW)
+    :Flag as LEGITIMATE;
+  endif
+
+  :Log Result to Database;
+  
+  fork
+    :Update Dashboard Stats;
+  fork again
+    :Run Campaign Clustering (Async);
+    :STIX/TAXII Export (Optional);
+  end fork
+  
+  :Display Final Visual Result;
+  stop
+else (no)
+  :Display Validation Error;
+  stop
+endif
+
+@enduml

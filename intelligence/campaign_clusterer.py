@@ -112,7 +112,10 @@ def _write_campaign(session, cluster_events: list, cluster_id: str) -> str:
 
     timestamps = [e.timestamp for e in cluster_events if e.timestamp]
     channels   = list({e.channel for e in cluster_events})
-    from utils.ensemble import TTP_MAP  # reuse TTP mapping
+    TTP_MAP = {
+        "email": "T1566.001", "url": "T1566.002", "chat": "T1566.001",
+        "image": "T1566.001", "file": "T1204.002", "pcap": "T1071.001",
+    }
     ttps = list({TTP_MAP.get(ch, "T1566.001") for ch in channels})
 
     campaign = Campaign(

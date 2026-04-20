@@ -51,7 +51,7 @@ class Settings:
     # ── Detection Thresholds — v2 channels ─────────────────────────
     EMAIL_THRESHOLD: float = float(os.getenv("EMAIL_THRESHOLD", "0.50"))
     URL_THRESHOLD: float = float(os.getenv("URL_THRESHOLD", "0.45"))
-    CHAT_THRESHOLD: float = float(os.getenv("CHAT_THRESHOLD", "0.50"))
+    CHAT_THRESHOLD: float = float(os.getenv("CHAT_THRESHOLD", "0.25"))
 
     # ── Detection Thresholds — v3 channels ─────────────────────────
     VOICE_THRESHOLD: float = float(os.getenv("VOICE_THRESHOLD", "0.50"))

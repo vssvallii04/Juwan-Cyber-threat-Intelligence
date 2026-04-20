@@ -39,12 +39,19 @@ def predict_email(text: str) -> dict:
         conf = float(np.max(proba))
         prediction = "phishing" if idx == 1 else "legitimate"
     else:
-        # Improved heuristic fallback: flag as phishing if any strong keyword is present
-        phishing_words = ["urgent", "verify", "password", "suspended", "click", "otp", "bank", "prize"]
-        hits = sum(1 for w in phishing_words if w in text.lower())
-        conf = min(hits / len(phishing_words), 1.0)
-        # If any phishing keyword is present, flag as phishing
-        prediction = "phishing" if hits > 0 else "legitimate"
+        # Weighted heuristic fallback: more granular than a simple keyword count.
+        import math
+        PHISHING_WEIGHTS = {
+            "urgent": 0.25, "verify": 0.25, "password": 0.30,
+            "suspended": 0.30, "click here": 0.25, "otp": 0.35,
+            "bank account": 0.30, "prize": 0.25, "wire transfer": 0.35,
+            "bitcoin": 0.30, "seed phrase": 0.40, "private key": 0.40,
+            "compromised": 0.30, "verify your account": 0.35,
+            "click": 0.15, "bank": 0.15, "account": 0.10,
+        }
+        raw = sum(w for kw, w in PHISHING_WEIGHTS.items() if kw in text.lower())
+        conf = round(math.tanh(raw * 0.85), 4)
+        prediction = "phishing" if raw > 0 else "legitimate"
 
     return {
         "prediction": prediction,

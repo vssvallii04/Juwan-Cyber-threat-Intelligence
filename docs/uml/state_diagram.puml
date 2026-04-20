@@ -1,0 +1,40 @@
+@startuml IOC Lifecycle State Diagram
+title Juwan CTI v3.0 - IOC Lifecycle State Diagram
+
+[*] --> Pending : "Payload Received"
+
+state Pending {
+  [*] --> Extracting : "Parsing metadata"
+  Extracting --> Validation : "Checking integrity"
+}
+
+Pending --> Analyzing : "Ensemble Dispatched"
+
+state Analyzing {
+  [*] --> ParallelScans : "Multi-modal processing"
+  ParallelScans --> Scoring : "Calculating weighted sums"
+  Scoring --> DecisionMaking : "Normalizing threat level"
+}
+
+Analyzing --> Processed : "Ensemble result generated"
+
+state Processed {
+  [*] --> Persisting : "Logging to IOCStore"
+  Persisting --> Clustering : "MinHash Trigger (Async)"
+  Clustering --> CampaignLinked : "Matched with campaign"
+  Clustering --> NewCampaign : "Unique threat detected"
+}
+
+Processed --> Reported : "Result displayed on Dashboard"
+
+Reported --> [*] : "Case Archived"
+
+' Transitions for errors/failures
+Pending --> Failed : "Invalid Payload"
+Analyzing --> Failed : "Timeout / Model Error"
+Failed --> [*]
+
+legend center
+  Juwan CTI v3.0 Threat Handling Lifecycle
+end legend
+@enduml

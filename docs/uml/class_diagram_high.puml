@@ -1,0 +1,54 @@
+@startuml High-Level Class Diagram
+title Juwan CTI v3.0 - High-Level Architecture Class Diagram
+
+abstract class BaseAnalyzer {
+  +analyze(data): Result
+}
+
+class EmailAnalyzer {
+  +analyze_ai_origin(text): dict
+}
+
+class URLAnalyzer {
+  +score_url(url): float
+}
+
+class ChatAnalyzer {
+  +detect_scam(message): dict
+}
+
+class DeepfakeImageAnalyzer {
+  +analyze_deepfake(img): dict
+  +ela_scan(img): dict
+}
+
+class MalwareFileAnalyzer {
+  +static_analysis(file): dict
+  +yara_scan(file): dict
+}
+
+class PCAPAnalyzer {
+  +parse_traffic(pcap): dict
+}
+
+class EnsembleEngine {
+  -weights: dict
+  +get_decision(results): dict
+}
+
+class IOCEvent <<SQLAlchemy Model>> {
+  +id: int
+  +ioc_value: str
+  +threat_level: str
+}
+
+BaseAnalyzer <|-- EmailAnalyzer
+BaseAnalyzer <|-- URLAnalyzer
+BaseAnalyzer <|-- ChatAnalyzer
+BaseAnalyzer <|-- DeepfakeImageAnalyzer
+BaseAnalyzer <|-- MalwareFileAnalyzer
+BaseAnalyzer <|-- PCAPAnalyzer
+
+EnsembleEngine o-- BaseAnalyzer : "aggregates"
+EnsembleEngine ..> IOCEvent : "persists"
+@enduml
